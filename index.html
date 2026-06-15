@@ -36,6 +36,8 @@
     background: #F0F0F0;
     color: var(--negro);
     min-height: 100vh;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* ── PANTALLAS ── */
@@ -1962,6 +1964,8 @@ async function apiCall(accion, params = {}) {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ accion, ...params }),
     });
     const data = await res.json();
@@ -3257,9 +3261,13 @@ async function guardarEnSheets(hoja, datos) {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
+      mode: 'cors',
+      headers: { 'Content-Type': 'text/plain' },
+      redirect: 'follow',
       body: JSON.stringify({ accion: 'escribir', hoja, datos })
     });
-    const json = await res.json();
+    const text = await res.text();
+    const json = JSON.parse(text);
     return json.ok;
   } catch(e) {
     console.error('Error guardando en Sheets:', e);

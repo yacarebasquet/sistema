@@ -1052,40 +1052,43 @@
     <nav class="sidebar">
       <div class="sidebar-section">
         <div class="sidebar-label">Principal</div>
-        <div class="sidebar-item active" onclick="showPage('dashboard')">
+        <div class="sidebar-item active" data-page="dashboard" onclick="showPage('dashboard')">
           <span class="icon">📊</span> Dashboard
         </div>
       </div>
       <div class="sidebar-section">
         <div class="sidebar-label">Finanzas</div>
-        <div class="sidebar-item" onclick="showPage('operaciones')">
+        <div class="sidebar-item" data-page="operaciones" onclick="showPage('operaciones')">
           <span class="icon">💰</span> Registrar operación
         </div>
-        <div class="sidebar-item" onclick="showPage('historial')">
+        <div class="sidebar-item" data-page="historial" onclick="showPage('historial')">
           <span class="icon">📋</span> Historial
         </div>
-        <div class="sidebar-item" onclick="showPage('cuenta')">
+        <div class="sidebar-item" data-page="cuenta" onclick="showPage('cuenta')">
           <span class="icon">👤</span> Estado de cuenta
         </div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-label">Operaciones</div>
-        <div class="sidebar-item" onclick="showPage('asistencia')">
-          <span class="icon">📅</span> Asistencia
-        </div>
-        <div class="sidebar-item" onclick="showPage('atletas')">
-          <span class="icon">🏃</span> Atletas
-        </div>
-      </div>
-      <div class="sidebar-section">
-        <div class="sidebar-label">Finanzas</div>
-        <div class="sidebar-item" onclick="showPage('cuotero')">
+        <div class="sidebar-item" data-page="cuotero" onclick="showPage('cuotero')">
           <span class="icon">📅</span> Cuotero
         </div>
       </div>
       <div class="sidebar-section">
+        <div class="sidebar-label">Deportivo</div>
+        <div class="sidebar-item" data-page="asistencia" onclick="showPage('asistencia')">
+          <span class="icon">📅</span> Asistencia
+        </div>
+        <div class="sidebar-item" data-page="atletas" onclick="showPage('atletas')">
+          <span class="icon">🏃</span> Atletas
+        </div>
+        <div class="sidebar-item" data-page="datos-fisicos" onclick="showPage('datos-fisicos')">
+          <span class="icon">📏</span> Datos físicos
+        </div>
+        <div class="sidebar-item" data-page="evaluaciones" onclick="showPage('evaluaciones')">
+          <span class="icon">⭐</span> Evaluaciones
+        </div>
+      </div>
+      <div class="sidebar-section">
         <div class="sidebar-label">Sistema</div>
-        <div class="sidebar-item" onclick="showPage('usuarios')">
+        <div class="sidebar-item" data-page="usuarios" onclick="showPage('usuarios')">
           <span class="icon">🔐</span> Usuarios
         </div>
       </div>
@@ -1495,6 +1498,181 @@
                 </tr>
               </thead>
               <tbody id="atletas-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── DATOS FÍSICOS ── -->
+      <div id="page-datos-fisicos" class="page">
+        <div class="page-header">
+          <h2>📏 Datos físicos</h2>
+          <p>Mediciones y evolución física de los atletas</p>
+        </div>
+
+        <div class="form-card">
+          <h3>➕ Registrar medición</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Buscar atleta</label>
+              <div class="search-box">
+                <input type="text" id="df-search" placeholder="Nombre o CI..." oninput="buscarAtletaDF()" autocomplete="off" />
+                <div class="search-results" id="df-results"></div>
+              </div>
+              <div class="atleta-selected" id="df-atleta-sel">
+                <div class="atleta-name" id="df-atleta-nombre">—</div>
+                <div class="atleta-detail" id="df-atleta-detalle">—</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Fecha de medición</label>
+              <input type="date" id="df-fecha" />
+            </div>
+          </div>
+          <div class="form-row triple">
+            <div class="form-group">
+              <label>Altura (cm)</label>
+              <input type="number" id="df-altura" placeholder="Ej: 165" />
+            </div>
+            <div class="form-group">
+              <label>Peso (kg)</label>
+              <input type="number" id="df-peso" placeholder="Ej: 58.5" step="0.1" />
+            </div>
+            <div class="form-group">
+              <label>Envergadura (cm)</label>
+              <input type="number" id="df-envergadura" placeholder="Ej: 170" />
+            </div>
+          </div>
+          <div class="form-row triple">
+            <div class="form-group">
+              <label>Altura de salto (cm)</label>
+              <input type="number" id="df-salto" placeholder="Ej: 45" />
+            </div>
+            <div class="form-group">
+              <label>Talla de calzado</label>
+              <input type="number" id="df-calzado" placeholder="Ej: 38" />
+            </div>
+            <div class="form-group">
+              <label>IMC (calculado)</label>
+              <input type="text" id="df-imc" placeholder="Auto" readonly style="background:var(--gris-claro)" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Observaciones</label>
+            <textarea id="df-obs" rows="2" placeholder="Notas adicionales"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" onclick="limpiarDF()">Limpiar</button>
+            <button class="btn btn-primary" onclick="guardarDatosFisicos()">💾 Guardar medición</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input type="text" id="filtro-df" placeholder="Buscar atleta..." oninput="filtrarDF()" />
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Atleta</th><th>Cat.</th><th>Fecha</th><th>Altura</th>
+                  <th>Peso</th><th>Envergadura</th><th>Salto</th><th>IMC</th><th>Calzado</th>
+                </tr>
+              </thead>
+              <tbody id="df-tbody">
+                <tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📏</div><p>Sin mediciones registradas</p></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── EVALUACIONES ── -->
+      <div id="page-evaluaciones" class="page">
+        <div class="page-header">
+          <h2>⭐ Evaluaciones técnicas</h2>
+          <p>Puntajes y seguimiento técnico de los atletas</p>
+        </div>
+
+        <div class="form-card">
+          <h3>➕ Nueva evaluación</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Buscar atleta</label>
+              <div class="search-box">
+                <input type="text" id="ev-search" placeholder="Nombre o CI..." oninput="buscarAtletaEV()" autocomplete="off" />
+                <div class="search-results" id="ev-results"></div>
+              </div>
+              <div class="atleta-selected" id="ev-atleta-sel">
+                <div class="atleta-name" id="ev-atleta-nombre">—</div>
+                <div class="atleta-detail" id="ev-atleta-detalle">—</div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Fecha evaluación</label>
+              <input type="date" id="ev-fecha" />
+            </div>
+          </div>
+
+          <div style="background:var(--gris-claro); border-radius:var(--radio); padding:1rem; margin-bottom:1rem">
+            <p style="font-size:12px; font-weight:600; color:var(--gris-oscuro); margin-bottom:.75rem; text-transform:uppercase; letter-spacing:.04em">Puntajes técnicos — del 1 al 10</p>
+            <div class="form-row triple">
+              <div class="form-group">
+                <label>🏀 Dribbling</label>
+                <input type="number" id="ev-dribbling" min="1" max="10" placeholder="1-10" oninput="calcularPromedio()" />
+              </div>
+              <div class="form-group">
+                <label>🎯 Pase</label>
+                <input type="number" id="ev-pase" min="1" max="10" placeholder="1-10" oninput="calcularPromedio()" />
+              </div>
+              <div class="form-group">
+                <label>🥅 Tiro</label>
+                <input type="number" id="ev-tiro" min="1" max="10" placeholder="1-10" oninput="calcularPromedio()" />
+              </div>
+            </div>
+            <div class="form-row triple">
+              <div class="form-group">
+                <label>🛡️ Defensa</label>
+                <input type="number" id="ev-defensa" min="1" max="10" placeholder="1-10" oninput="calcularPromedio()" />
+              </div>
+              <div class="form-group">
+                <label>💪 Físico</label>
+                <input type="number" id="ev-fisico" min="1" max="10" placeholder="1-10" oninput="calcularPromedio()" />
+              </div>
+              <div class="form-group">
+                <label>📊 Promedio</label>
+                <input type="text" id="ev-promedio" placeholder="Auto" readonly
+                  style="background:var(--naranja-light); color:var(--naranja); font-weight:700; font-size:18px; text-align:center" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Observaciones del entrenador</label>
+            <textarea id="ev-obs" rows="2" placeholder="Notas sobre el desempeño del atleta"></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" onclick="limpiarEV()">Limpiar</button>
+            <button class="btn btn-primary" onclick="guardarEvaluacion()">💾 Guardar evaluación</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input type="text" id="filtro-ev" placeholder="Buscar atleta..." oninput="filtrarEV()" />
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Atleta</th><th>Cat.</th><th>Fecha</th>
+                  <th>Drib.</th><th>Pase</th><th>Tiro</th><th>Def.</th><th>Fís.</th>
+                  <th>Prom.</th><th>Entrenador</th>
+                </tr>
+              </thead>
+              <tbody id="ev-tbody">
+                <tr><td colspan="10"><div class="empty-state"><div class="empty-icon">⭐</div><p>Sin evaluaciones registradas</p></div></td></tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -2057,6 +2235,7 @@ function doLogin() {
       if (screenLogin) { screenLogin.classList.remove('active'); screenLogin.style.display = 'none'; }
       if (screenMain)  { screenMain.classList.add('active');  screenMain.style.display = 'flex'; }
       inicializarApp();
+      setTimeout(() => aplicarRol(usr), 300);
     } else {
       const err = document.getElementById('login-error');
       err.style.display = 'block';
@@ -3018,9 +3197,462 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
 });
 
+
+// ══════════════════════════════════════════════════════
+//  ROLES Y PERMISOS
+// ══════════════════════════════════════════════════════
+const ROLES_PERMISOS = {
+  'Administrador': {
+    menu: ['dashboard','operaciones','historial','cuenta','asistencia','atletas','cuotero','datos-fisicos','evaluaciones','usuarios'],
+    soloConsulta: false
+  },
+  'Tesorero': {
+    menu: ['dashboard','operaciones','historial','cuenta','atletas','cuotero'],
+    soloConsulta: false
+  },
+  'Entrenador': {
+    menu: ['asistencia','atletas','datos-fisicos','evaluaciones'],
+    soloConsulta: false
+  },
+  'Directivo': {
+    menu: ['dashboard','historial','cuenta','atletas','cuotero','datos-fisicos','evaluaciones'],
+    soloConsulta: true
+  },
+  'Tutor': {
+    menu: ['cuenta'],
+    soloConsulta: true
+  }
+};
+
+function aplicarRol(usuario) {
+  const rol   = usuario.rol || 'Directivo';
+  const perms = ROLES_PERMISOS[rol] || ROLES_PERMISOS['Directivo'];
+
+  // Mostrar/ocultar sidebar items
+  document.querySelectorAll('.sidebar-item[data-page]').forEach(item => {
+    const page = item.getAttribute('data-page');
+    item.style.display = perms.menu.includes(page) ? 'flex' : 'none';
+  });
+
+  // Navegar a primera página del rol
+  const primera = perms.menu[0] || 'dashboard';
+  const primerItem = document.querySelector('.sidebar-item[data-page="' + primera + '"]');
+  if (primerItem) primerItem.click();
+
+  // Mostrar badge de rol en topbar
+  const badge = document.createElement('span');
+  badge.style.cssText = 'font-size:10px; background:var(--naranja); color:#fff; padding:2px 8px; border-radius:20px; font-weight:600; margin-left:6px';
+  badge.textContent = rol;
+  const topbarNombre = document.getElementById('topbar-nombre');
+  if (topbarNombre && !topbarNombre.querySelector('.rol-badge')) {
+    badge.className = 'rol-badge';
+    topbarNombre.appendChild(badge);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  GUARDAR EN GOOGLE SHEETS — Función central
+// ══════════════════════════════════════════════════════
+async function guardarEnSheets(hoja, datos) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion: 'escribir', hoja, datos })
+    });
+    const json = await res.json();
+    return json.ok;
+  } catch(e) {
+    console.error('Error guardando en Sheets:', e);
+    return false;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  ASISTENCIA — Guardar en Sheets
+// ══════════════════════════════════════════════════════
+async function guardarAsistenciaEnSheets() {
+  const fecha       = document.getElementById('asis-fecha').value;
+  const cat         = document.getElementById('asis-categoria').value;
+  const entrenador  = document.getElementById('asis-entrenador').value;
+  const total       = Object.keys(asistencias).length;
+  const marcados    = Object.values(asistencias).filter(v=>v!==null).length;
+
+  if (!fecha) { mostrarNotif('❌ Seleccioná la fecha', 'error'); return false; }
+  if (marcados === 0) { mostrarNotif('❌ Marcá al menos un atleta', 'error'); return false; }
+
+  mostrarNotif('💾 Guardando asistencia en Google Sheets...');
+
+  // Crear una fila por atleta
+  const atletas = cat === 'TODAS'
+    ? ATLETAS.filter(a => a.estado === 'ACTIVO')
+    : ATLETAS.filter(a => a.cat === cat && a.estado === 'ACTIVO');
+
+  let guardados = 0;
+  for (const atleta of atletas) {
+    const estado = asistencias[atleta.id] || 'SIN MARCAR';
+    const ok = await guardarEnSheets('ASISTENCIAS', {
+      'FECHA':              fecha,
+      'CATEGORÍA':          atleta.cat,
+      'ENTRENADOR':         entrenador,
+      'ID_ATLETA':          atleta.id,
+      'CI':                 atleta.ci,
+      'NOMBRES Y APELLIDOS':atleta.nombre,
+      'ESTADO':             estado.toUpperCase(),
+      'MOTIVO':             '',
+      'OBSERVACIONES':      'Registrado por ' + (usuarioLogueado ? usuarioLogueado.nombre : 'Sistema')
+    });
+    if (ok) guardados++;
+  }
+
+  if (guardados > 0) {
+    mostrarNotif('✅ Asistencia guardada — ' + guardados + ' atletas en Google Sheets');
+    return true;
+  } else {
+    mostrarNotif('⚠️ No se pudo guardar en Sheets — verificá la conexión', 'warn');
+    return false;
+  }
+}
+
+// Override de confirmarAsistencia para guardar en Sheets
+async function confirmarAsistencia() {
+  const fecha     = document.getElementById('asis-fecha').value;
+  const cat       = document.getElementById('asis-categoria').value;
+  const presentes = Object.values(asistencias).filter(v=>v==='presente').length;
+  const ausentes  = Object.values(asistencias).filter(v=>v==='ausente').length;
+  const total     = Object.keys(asistencias).length;
+
+  if (!confirm(
+    'Confirmar asistencia definitivamente\n\n' +
+    'Fecha: ' + fecha + '\n' +
+    'Presentes: ' + presentes + '/' + total + '\n' +
+    'Ausentes: ' + ausentes + '\n\n' +
+    '¿Guardás en Google Sheets?'
+  )) return;
+
+  const ok = await guardarAsistenciaEnSheets();
+  if (ok) {
+    asistenciaEstado = 'confirmada';
+    actualizarEstadoBarra();
+  }
+}
+
+// Override guardarAsistenciaBorrador
+async function guardarAsistenciaBorrador() {
+  const fecha = document.getElementById('asis-fecha').value;
+  const cat   = document.getElementById('asis-categoria').value;
+  if (!fecha) { mostrarNotif('❌ Seleccioná la fecha', 'error'); return; }
+
+  const key = fecha + '_' + cat;
+  asistenciaBorradores[key] = {
+    asistencias: { ...asistencias },
+    estado: 'borrador',
+    fecha, cat,
+    entrenador: document.getElementById('asis-entrenador').value,
+    guardadoEn: new Date().toLocaleTimeString('es-PY')
+  };
+  asistenciaEstado = 'borrador';
+  actualizarEstadoBarra();
+  mostrarNotif('💾 Borrador guardado localmente — Confirmá al terminar para guardar en Sheets');
+}
+
+// Override marcarTodosPresente
+function marcarTodosPresente() {
+  if (asistenciaEstado === 'confirmada') {
+    mostrarNotif('⚠️ Confirmada — usá Editar primero', 'warn'); return;
+  }
+  Object.keys(asistencias).forEach(id => {
+    asistencias[id] = 'presente';
+    const card = document.getElementById('card-' + id);
+    if (card) card.className = 'asistencia-card estado-presente';
+  });
+  actualizarContadores();
+  actualizarResumenTexto(Object.keys(asistencias).length);
+  mostrarNotif('✅ Todos marcados como presentes');
+}
+
+// Override limpiarAsistencia
+function limpiarAsistencia() {
+  if (asistenciaEstado === 'confirmada') {
+    mostrarNotif('⚠️ Confirmada — usá Editar primero', 'warn'); return;
+  }
+  if (!confirm('¿Limpiar todos los marcadores?')) return;
+  Object.keys(asistencias).forEach(id => {
+    asistencias[id] = null;
+    const card = document.getElementById('card-' + id);
+    if (card) card.className = 'asistencia-card';
+  });
+  actualizarContadores();
+  actualizarResumenTexto(Object.keys(asistencias).length);
+}
+
+// ══════════════════════════════════════════════════════
+//  INGRESOS/EGRESOS — Guardar en Sheets con columnas exactas
+// ══════════════════════════════════════════════════════
+async function guardarOperacionEnSheets(op) {
+  const mes  = op.periodo ? op.periodo.split('/')[0] : '';
+  const anio = op.periodo ? op.periodo.split('/')[1] : '';
+
+  return await guardarEnSheets('INGRESOS_EGRESOS', {
+    'USUARIO':                   usuarioLogueado ? usuarioLogueado.nombre : 'Sistema',
+    'FECHA':                     op.fecha,
+    'TIPO OPERACION':            op.tipo,
+    'CONCEPTOS':                 op.concepto,
+    'RUC O CI NRO':              op.ci || '',
+    'EMPRESA/PROVEEDOR/ATLETA':  op.nombre || '',
+    'PERIODO':                   op.periodo || '',
+    'NRO DE DOC.':               op.nrodoc || '',
+    'DETALLE':                   op.detalle || '',
+    'IMPORTE':                   op.monto,
+    'SALDO':                     '',
+    'MES':                       mes,
+    'AÑO':                       anio,
+    'ID_ATLETA':                 op.atletaId || '',
+    'CONTACTO_TUTOR':            op.contactoTutor || ''
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  DATOS FÍSICOS
+// ══════════════════════════════════════════════════════
+let datosFisicos = [];
+let dfAtletaSeleccionado = null;
+
+function buscarAtletaDF() {
+  const q = document.getElementById('df-search').value.toLowerCase();
+  const res = document.getElementById('df-results');
+  if (q.length < 2) { res.style.display='none'; return; }
+  const found = ATLETAS.filter(a =>
+    a.nombre.toLowerCase().includes(q) || a.ci.includes(q)
+  ).slice(0,6);
+  if (!found.length) { res.style.display='none'; return; }
+  res.innerHTML = found.map(a =>
+    '<div class="search-result-item" onclick="seleccionarAtletaDF('' + a.id + '')">' +
+    '<div class="atleta-name">' + a.nombre + '</div>' +
+    '<div class="atleta-meta">CI: ' + a.ci + ' · Cat. ' + a.cat + '</div>' +
+    '</div>'
+  ).join('');
+  res.style.display = 'block';
+}
+
+function seleccionarAtletaDF(id) {
+  dfAtletaSeleccionado = ATLETAS.find(a => a.id === id);
+  document.getElementById('df-search').value = dfAtletaSeleccionado.nombre;
+  document.getElementById('df-results').style.display = 'none';
+  document.getElementById('df-atleta-sel').style.display = 'block';
+  document.getElementById('df-atleta-nombre').textContent = dfAtletaSeleccionado.nombre;
+  document.getElementById('df-atleta-detalle').textContent = 'CI: ' + dfAtletaSeleccionado.ci + ' · Cat. ' + dfAtletaSeleccionado.cat;
+}
+
+function calcularIMC() {
+  const altura = parseFloat(document.getElementById('df-altura').value) / 100;
+  const peso   = parseFloat(document.getElementById('df-peso').value);
+  if (altura > 0 && peso > 0) {
+    const imc = (peso / (altura * altura)).toFixed(1);
+    document.getElementById('df-imc').value = imc;
+  }
+}
+
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'df-altura' || e.target.id === 'df-peso') calcularIMC();
+});
+
+async function guardarDatosFisicos() {
+  if (!dfAtletaSeleccionado) { mostrarNotif('❌ Seleccioná un atleta', 'error'); return; }
+  const fecha = document.getElementById('df-fecha').value;
+  if (!fecha) { mostrarNotif('❌ Seleccioná la fecha', 'error'); return; }
+
+  const datos = {
+    'ID_ATLETA':          dfAtletaSeleccionado.id,
+    'CI':                 dfAtletaSeleccionado.ci,
+    'NOMBRES Y APELLIDOS':dfAtletaSeleccionado.nombre,
+    'FECHA MEDICIÓN':     fecha,
+    'ALTURA CM':          document.getElementById('df-altura').value || '',
+    'PESO KG':            document.getElementById('df-peso').value || '',
+    'ENVERGADURA CM':     document.getElementById('df-envergadura').value || '',
+    'ALTURA SALTO CM':    document.getElementById('df-salto').value || '',
+    'IMC':                document.getElementById('df-imc').value || '',
+    'TALLA CALZADO':      document.getElementById('df-calzado').value || '',
+    'OBSERVACIONES':      document.getElementById('df-obs').value || ''
+  };
+
+  mostrarNotif('💾 Guardando en Google Sheets...');
+  const ok = await guardarEnSheets('DATOS_FISICOS', datos);
+
+  if (ok) {
+    datosFisicos.unshift({ ...datos, nombre: dfAtletaSeleccionado.nombre, cat: dfAtletaSeleccionado.cat });
+    renderDF();
+    limpiarDF();
+    mostrarNotif('✅ Medición guardada en Google Sheets');
+  } else {
+    mostrarNotif('⚠️ Error al guardar — verificá la conexión', 'warn');
+  }
+}
+
+function limpiarDF() {
+  dfAtletaSeleccionado = null;
+  ['df-search','df-altura','df-peso','df-envergadura','df-salto','df-calzado','df-imc','df-obs'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('df-atleta-sel').style.display = 'none';
+  document.getElementById('df-fecha').value = new Date().toISOString().split('T')[0];
+}
+
+function renderDF(filtro='') {
+  const tbody = document.getElementById('df-tbody');
+  let datos = datosFisicos;
+  if (filtro) {
+    const q = filtro.toLowerCase();
+    datos = datos.filter(d => d['NOMBRES Y APELLIDOS'].toLowerCase().includes(q) || String(d['CI']).includes(q));
+  }
+  if (!datos.length) {
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📏</div><p>Sin mediciones registradas</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = datos.map(d => '<tr>' +
+    '<td style="font-weight:500">' + d['NOMBRES Y APELLIDOS'] + '</td>' +
+    '<td><span class="tag" style="background:var(--naranja-light);color:var(--naranja-dark)">' + (d.cat||'') + '</span></td>' +
+    '<td>' + d['FECHA MEDICIÓN'] + '</td>' +
+    '<td>' + (d['ALTURA CM']||'—') + ' cm</td>' +
+    '<td>' + (d['PESO KG']||'—') + ' kg</td>' +
+    '<td>' + (d['ENVERGADURA CM']||'—') + ' cm</td>' +
+    '<td>' + (d['ALTURA SALTO CM']||'—') + ' cm</td>' +
+    '<td>' + (d['IMC']||'—') + '</td>' +
+    '<td>' + (d['TALLA CALZADO']||'—') + '</td>' +
+  '</tr>').join('');
+}
+
+function filtrarDF() { renderDF(document.getElementById('filtro-df').value); }
+
+// ══════════════════════════════════════════════════════
+//  EVALUACIONES TÉCNICAS
+// ══════════════════════════════════════════════════════
+let evaluaciones = [];
+let evAtletaSeleccionado = null;
+
+function buscarAtletaEV() {
+  const q = document.getElementById('ev-search').value.toLowerCase();
+  const res = document.getElementById('ev-results');
+  if (q.length < 2) { res.style.display='none'; return; }
+  const found = ATLETAS.filter(a =>
+    a.nombre.toLowerCase().includes(q) || a.ci.includes(q)
+  ).slice(0,6);
+  if (!found.length) { res.style.display='none'; return; }
+  res.innerHTML = found.map(a =>
+    '<div class="search-result-item" onclick="seleccionarAtletaEV('' + a.id + '')">' +
+    '<div class="atleta-name">' + a.nombre + '</div>' +
+    '<div class="atleta-meta">CI: ' + a.ci + ' · Cat. ' + a.cat + '</div>' +
+    '</div>'
+  ).join('');
+  res.style.display = 'block';
+}
+
+function seleccionarAtletaEV(id) {
+  evAtletaSeleccionado = ATLETAS.find(a => a.id === id);
+  document.getElementById('ev-search').value = evAtletaSeleccionado.nombre;
+  document.getElementById('ev-results').style.display = 'none';
+  document.getElementById('ev-atleta-sel').style.display = 'block';
+  document.getElementById('ev-atleta-nombre').textContent = evAtletaSeleccionado.nombre;
+  document.getElementById('ev-atleta-detalle').textContent = 'CI: ' + evAtletaSeleccionado.ci + ' · Cat. ' + evAtletaSeleccionado.cat;
+}
+
+function calcularPromedio() {
+  const campos = ['ev-dribbling','ev-pase','ev-tiro','ev-defensa','ev-fisico'];
+  const valores = campos.map(id => parseFloat(document.getElementById(id).value) || 0);
+  const llenos  = valores.filter(v => v > 0);
+  if (llenos.length > 0) {
+    const prom = (llenos.reduce((s,v) => s+v, 0) / llenos.length).toFixed(1);
+    document.getElementById('ev-promedio').value = prom;
+  } else {
+    document.getElementById('ev-promedio').value = '';
+  }
+}
+
+async function guardarEvaluacion() {
+  if (!evAtletaSeleccionado) { mostrarNotif('❌ Seleccioná un atleta', 'error'); return; }
+  const fecha = document.getElementById('ev-fecha').value;
+  if (!fecha) { mostrarNotif('❌ Seleccioná la fecha', 'error'); return; }
+
+  const datos = {
+    'ID_ATLETA':          evAtletaSeleccionado.id,
+    'CI':                 evAtletaSeleccionado.ci,
+    'NOMBRES Y APELLIDOS':evAtletaSeleccionado.nombre,
+    'CATEGORÍA':          evAtletaSeleccionado.cat,
+    'FECHA EVALUACIÓN':   fecha,
+    'ENTRENADOR':         usuarioLogueado ? usuarioLogueado.nombre : '',
+    'DRIBBLING':          document.getElementById('ev-dribbling').value || '',
+    'PASE':               document.getElementById('ev-pase').value || '',
+    'TIRO':               document.getElementById('ev-tiro').value || '',
+    'DEFENSA':            document.getElementById('ev-defensa').value || '',
+    'FÍSICO':             document.getElementById('ev-fisico').value || '',
+    'PROMEDIO':           document.getElementById('ev-promedio').value || '',
+    'OBSERVACIONES':      document.getElementById('ev-obs').value || ''
+  };
+
+  mostrarNotif('💾 Guardando evaluación en Google Sheets...');
+  const ok = await guardarEnSheets('EVALUACIONES', datos);
+
+  if (ok) {
+    evaluaciones.unshift({ ...datos, nombre: evAtletaSeleccionado.nombre, cat: evAtletaSeleccionado.cat });
+    renderEV();
+    limpiarEV();
+    mostrarNotif('✅ Evaluación guardada en Google Sheets');
+  } else {
+    mostrarNotif('⚠️ Error al guardar — verificá la conexión', 'warn');
+  }
+}
+
+function limpiarEV() {
+  evAtletaSeleccionado = null;
+  ['ev-search','ev-dribbling','ev-pase','ev-tiro','ev-defensa','ev-fisico','ev-promedio','ev-obs'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('ev-atleta-sel').style.display = 'none';
+  document.getElementById('ev-fecha').value = new Date().toISOString().split('T')[0];
+}
+
+function renderEV(filtro='') {
+  const tbody = document.getElementById('ev-tbody');
+  let datos = evaluaciones;
+  if (filtro) {
+    const q = filtro.toLowerCase();
+    datos = datos.filter(d => d['NOMBRES Y APELLIDOS'].toLowerCase().includes(q));
+  }
+  if (!datos.length) {
+    tbody.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">⭐</div><p>Sin evaluaciones registradas</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = datos.map(d => {
+    const prom = parseFloat(d['PROMEDIO']) || 0;
+    const color = prom >= 8 ? 'var(--verde)' : prom >= 6 ? 'var(--amarillo)' : 'var(--rojo)';
+    return '<tr>' +
+      '<td style="font-weight:500">' + d['NOMBRES Y APELLIDOS'] + '</td>' +
+      '<td><span class="tag" style="background:var(--naranja-light);color:var(--naranja-dark)">' + (d['CATEGORÍA']||'') + '</span></td>' +
+      '<td>' + d['FECHA EVALUACIÓN'] + '</td>' +
+      '<td style="text-align:center">' + (d['DRIBBLING']||'—') + '</td>' +
+      '<td style="text-align:center">' + (d['PASE']||'—') + '</td>' +
+      '<td style="text-align:center">' + (d['TIRO']||'—') + '</td>' +
+      '<td style="text-align:center">' + (d['DEFENSA']||'—') + '</td>' +
+      '<td style="text-align:center">' + (d['FÍSICO']||'—') + '</td>' +
+      '<td style="text-align:center; font-weight:700; color:' + color + '">' + (d['PROMEDIO']||'—') + '</td>' +
+      '<td style="font-size:12px">' + (d['ENTRENADOR']||'—') + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function filtrarEV() { renderEV(document.getElementById('filtro-ev').value); }
+
+// ══════════════════════════════════════════════════════
+//  INICIALIZAR — Actualizar para aplicar roles y fechas
+// ══════════════════════════════════════════════════════
 // Inicializar fecha hoy en pantalla login
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('fecha-hoy').textContent = fechaHoy();
+  // Inicializar fechas de los módulos nuevos
+  const hoy = new Date().toISOString().split('T')[0];
+  if (document.getElementById('df-fecha')) document.getElementById('df-fecha').value = hoy;
+  if (document.getElementById('ev-fecha')) document.getElementById('ev-fecha').value = hoy;
 });
 
 // ══════════════════════════════════════════════════════

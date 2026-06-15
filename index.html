@@ -1,0 +1,3109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Club Yacaré Básquet — Sistema de Gestión</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --naranja: #E87722;
+    --naranja-dark: #C45E0A;
+    --naranja-light: #FDE9D4;
+    --negro: #1A1A1A;
+    --gris-oscuro: #4A4A4A;
+    --gris-medio: #888;
+    --gris-claro: #F4F4F4;
+    --blanco: #FFFFFF;
+    --verde: #1E7E34;
+    --verde-light: #D4EDDA;
+    --rojo: #C0392B;
+    --rojo-light: #FADBD8;
+    --amarillo: #F39C12;
+    --amarillo-light: #FDEBD0;
+    --azul: #1565C0;
+    --azul-light: #E3F2FD;
+    --radio: 10px;
+    --radio-lg: 16px;
+    --sombra: 0 2px 12px rgba(0,0,0,0.08);
+    --sombra-lg: 0 8px 32px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #F0F0F0;
+    color: var(--negro);
+    min-height: 100vh;
+  }
+
+  /* ── PANTALLAS ── */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: block; }
+  #screen-login { position: relative; z-index: 1; }
+  #screen-main { position: relative; z-index: 1; }
+
+  /* ══════════════════════════════
+     PANTALLA LOGIN
+  ══════════════════════════════ */
+  #screen-login {
+    background: var(--negro);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  #screen-login.active { display: flex; }
+
+  .login-card {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    padding: 2.5rem 2rem;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: var(--sombra-lg);
+  }
+
+  .login-logo {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .login-logo .ball {
+    width: 64px;
+    height: 64px;
+    background: var(--naranja);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin-bottom: 1rem;
+  }
+
+  .login-logo h1 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--negro);
+    line-height: 1.2;
+  }
+
+  .login-logo p {
+    font-size: 13px;
+    color: var(--gris-medio);
+    margin-top: 4px;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gris-oscuro);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 6px;
+  }
+
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #DDD;
+    border-radius: var(--radio);
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--negro);
+    background: var(--blanco);
+    transition: border-color .15s;
+    outline: none;
+  }
+
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: var(--naranja);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radio);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: all .15s;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--naranja);
+    color: var(--blanco);
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+  }
+
+  .btn-primary:hover { background: var(--naranja-dark); }
+
+  .btn-secondary {
+    background: var(--gris-claro);
+    color: var(--gris-oscuro);
+  }
+
+  .btn-secondary:hover { background: #E8E8E8; }
+
+  .btn-success { background: var(--verde); color: var(--blanco); }
+  .btn-success:hover { background: #155724; }
+
+  .btn-danger { background: var(--rojo); color: var(--blanco); }
+  .btn-danger:hover { background: #922B21; }
+
+  .btn-whatsapp { background: #25D366; color: var(--blanco); }
+  .btn-whatsapp:hover { background: #1DA851; }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--naranja);
+    border: 1.5px solid var(--naranja);
+  }
+  .btn-outline:hover { background: var(--naranja-light); }
+
+  .login-error {
+    background: var(--rojo-light);
+    color: var(--rojo);
+    padding: 10px 14px;
+    border-radius: var(--radio);
+    font-size: 13px;
+    margin-bottom: 1rem;
+    display: none;
+  }
+
+  /* ══════════════════════════════
+     LAYOUT PRINCIPAL
+  ══════════════════════════════ */
+  #screen-main.active { display: flex; flex-direction: column; }
+
+  .topbar {
+    background: var(--negro);
+    color: var(--blanco);
+    padding: 0 1.5rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .topbar-brand .dot {
+    width: 28px;
+    height: 28px;
+    background: var(--naranja);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+
+  .topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: #CCC;
+  }
+
+  .topbar-user span { color: var(--blanco); font-weight: 500; }
+
+  .btn-logout {
+    background: transparent;
+    border: 1px solid #444;
+    color: #CCC;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+  }
+
+  .btn-logout:hover { border-color: var(--naranja); color: var(--naranja); }
+
+  .main-layout {
+    display: flex;
+    flex: 1;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px;
+    background: var(--blanco);
+    border-right: 1px solid #E8E8E8;
+    padding: 1.5rem 0;
+    flex-shrink: 0;
+  }
+
+  .sidebar-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--gris-medio);
+    padding: 0 1rem;
+    margin-bottom: 6px;
+  }
+
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 1rem;
+    font-size: 13px;
+    color: var(--gris-oscuro);
+    cursor: pointer;
+    transition: all .12s;
+    border-left: 3px solid transparent;
+    font-weight: 500;
+  }
+
+  .sidebar-item:hover {
+    background: var(--naranja-light);
+    color: var(--naranja-dark);
+  }
+
+  .sidebar-item.active {
+    background: var(--naranja-light);
+    color: var(--naranja);
+    border-left-color: var(--naranja);
+    font-weight: 600;
+  }
+
+  .sidebar-item .icon {
+    font-size: 16px;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* ── CONTENIDO ── */
+  .content {
+    flex: 1;
+    padding: 1.5rem;
+    overflow-y: auto;
+    background: #F0F0F0;
+  }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .page-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--negro);
+  }
+
+  .page-header p {
+    font-size: 13px;
+    color: var(--gris-medio);
+    margin-top: 4px;
+  }
+
+  /* ══════════════════════════════
+     DASHBOARD
+  ══════════════════════════════ */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+
+  .kpi-card {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    padding: 1.25rem;
+    box-shadow: var(--sombra);
+  }
+
+  .kpi-card .kpi-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--gris-medio);
+    margin-bottom: 8px;
+  }
+
+  .kpi-card .kpi-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--negro);
+    line-height: 1;
+  }
+
+  .kpi-card .kpi-sub {
+    font-size: 12px;
+    color: var(--gris-medio);
+    margin-top: 4px;
+  }
+
+  .kpi-card.naranja .kpi-value { color: var(--naranja); }
+  .kpi-card.verde .kpi-value { color: var(--verde); }
+  .kpi-card.rojo .kpi-value { color: var(--rojo); }
+  .kpi-card.azul .kpi-value { color: var(--azul); }
+
+  /* ══════════════════════════════
+     FORMULARIO INGRESOS/EGRESOS
+  ══════════════════════════════ */
+  .form-card {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    padding: 1.5rem;
+    box-shadow: var(--sombra);
+    margin-bottom: 1.5rem;
+  }
+
+  .form-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--negro);
+    margin-bottom: 1.25rem;
+    padding-bottom: .75rem;
+    border-bottom: 1.5px solid var(--gris-claro);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .form-row.triple { grid-template-columns: 1fr 1fr 1fr; }
+  .form-row.full { grid-template-columns: 1fr; }
+
+  /* Tipo INGRESO/EGRESO */
+  .tipo-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .tipo-btn {
+    padding: 14px;
+    border-radius: var(--radio);
+    border: 2px solid #DDD;
+    background: var(--blanco);
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s;
+    font-family: inherit;
+  }
+
+  .tipo-btn .tipo-icon { font-size: 24px; display: block; margin-bottom: 4px; }
+  .tipo-btn .tipo-label { font-size: 13px; font-weight: 700; color: var(--gris-oscuro); }
+
+  .tipo-btn.selected-ingreso {
+    border-color: var(--verde);
+    background: var(--verde-light);
+  }
+  .tipo-btn.selected-ingreso .tipo-label { color: var(--verde); }
+
+  .tipo-btn.selected-egreso {
+    border-color: var(--rojo);
+    background: var(--rojo-light);
+  }
+  .tipo-btn.selected-egreso .tipo-label { color: var(--rojo); }
+
+  /* Buscador de atletas */
+  .search-box {
+    position: relative;
+  }
+
+  .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--blanco);
+    border: 1.5px solid var(--naranja);
+    border-top: none;
+    border-radius: 0 0 var(--radio) var(--radio);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 50;
+    display: none;
+  }
+
+  .search-result-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    border-bottom: 1px solid #F0F0F0;
+    transition: background .1s;
+  }
+
+  .search-result-item:hover { background: var(--naranja-light); }
+  .search-result-item .atleta-name { font-weight: 600; color: var(--negro); }
+  .search-result-item .atleta-meta { font-size: 11px; color: var(--gris-medio); margin-top: 2px; }
+
+  /* Atleta seleccionado */
+  .atleta-selected {
+    background: var(--azul-light);
+    border-radius: var(--radio);
+    padding: 12px 14px;
+    display: none;
+    margin-top: 8px;
+  }
+
+  .atleta-selected .atleta-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--azul);
+  }
+
+  .atleta-selected .atleta-detail {
+    font-size: 12px;
+    color: var(--gris-oscuro);
+    margin-top: 4px;
+  }
+
+  /* Validación de monto */
+  .monto-validation {
+    display: none;
+  }
+
+  .monto-match {
+    background: var(--verde-light);
+    color: var(--verde);
+    padding: 8px 12px;
+    border-radius: var(--radio);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+    display: none;
+  }
+
+  .monto-error {
+    background: var(--rojo-light);
+    color: var(--rojo);
+    padding: 8px 12px;
+    border-radius: var(--radio);
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+    display: none;
+  }
+
+  /* Alerta duplicado */
+  .duplicado-alert {
+    background: var(--amarillo-light);
+    border: 1.5px solid var(--amarillo);
+    border-radius: var(--radio);
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #7D5A00;
+    display: none;
+    margin-bottom: 1rem;
+  }
+
+  /* Botones del formulario */
+  .form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1.5px solid var(--gris-claro);
+  }
+
+  /* ══════════════════════════════
+     MODAL CONFIRMACIÓN
+  ══════════════════════════════ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    padding: 2rem;
+    max-width: 460px;
+    width: 100%;
+    box-shadow: var(--sombra-lg);
+  }
+
+  .modal h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--negro);
+  }
+
+  .confirm-detail {
+    background: var(--gris-claro);
+    border-radius: var(--radio);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .confirm-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px solid #E8E8E8;
+  }
+
+  .confirm-row:last-child { border-bottom: none; }
+  .confirm-row .label { color: var(--gris-medio); }
+  .confirm-row .value { font-weight: 600; color: var(--negro); }
+  .confirm-row.total .value { font-size: 18px; color: var(--naranja); }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .modal-actions .btn { flex: 1; }
+
+  /* ══════════════════════════════
+     MODAL RECIBO
+  ══════════════════════════════ */
+  .recibo-preview {
+    border: 1.5px solid #DDD;
+    border-radius: var(--radio);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    background: var(--blanco);
+  }
+
+  .recibo-header {
+    text-align: center;
+    border-bottom: 2px dashed #CCC;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+
+  .recibo-header .club-name {
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Segoe UI', sans-serif;
+    color: var(--naranja);
+    letter-spacing: .05em;
+  }
+
+  .recibo-header .club-sub {
+    font-size: 11px;
+    color: var(--gris-medio);
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .recibo-nro {
+    text-align: center;
+    background: var(--negro);
+    color: var(--blanco);
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    margin: 10px 0;
+    font-family: 'Segoe UI', sans-serif;
+    letter-spacing: .1em;
+  }
+
+  .recibo-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+  }
+
+  .recibo-line .r-label { color: var(--gris-medio); }
+  .recibo-line .r-value { font-weight: 600; }
+
+  .recibo-monto {
+    text-align: center;
+    background: var(--naranja-light);
+    border: 2px solid var(--naranja);
+    border-radius: var(--radio);
+    padding: 12px;
+    margin: 12px 0;
+  }
+
+  .recibo-monto .monto-gs {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--naranja);
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  .recibo-monto .monto-letras {
+    font-size: 11px;
+    color: var(--gris-oscuro);
+    margin-top: 4px;
+    font-family: 'Segoe UI', sans-serif;
+    font-style: italic;
+  }
+
+  .recibo-parcial {
+    text-align: center;
+    background: var(--amarillo-light);
+    border: 1.5px solid var(--amarillo);
+    border-radius: var(--radio);
+    padding: 8px;
+    font-size: 12px;
+    color: #7D5A00;
+    font-family: 'Segoe UI', sans-serif;
+    margin: 8px 0;
+    display: none;
+  }
+
+  .recibo-firma {
+    border-top: 2px dashed #CCC;
+    margin-top: 14px;
+    padding-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .recibo-firma .firma-box {
+    border-top: 1px solid var(--negro);
+    padding-top: 6px;
+    font-size: 10px;
+    color: var(--gris-medio);
+    font-family: 'Segoe UI', sans-serif;
+    margin-top: 30px;
+  }
+
+  .recibo-copia {
+    border-top: 2px dashed var(--naranja);
+    margin-top: 1rem;
+    padding-top: 1rem;
+    opacity: 0.7;
+  }
+
+  .recibo-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .recibo-actions .btn { flex: 1; min-width: 140px; }
+
+  /* ══════════════════════════════
+     HISTORIAL
+  ══════════════════════════════ */
+  .table-wrap {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra);
+    overflow: hidden;
+  }
+
+  .table-toolbar {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #EEE;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .table-toolbar input {
+    flex: 1;
+    min-width: 180px;
+    padding: 8px 12px;
+    border: 1.5px solid #DDD;
+    border-radius: var(--radio);
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .table-toolbar input:focus { border-color: var(--naranja); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    background: var(--negro);
+    color: var(--blanco);
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    font-weight: 600;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #F0F0F0;
+    transition: background .1s;
+  }
+
+  tbody tr:hover { background: var(--naranja-light); }
+
+  tbody td {
+    padding: 10px 14px;
+    color: var(--negro);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .badge-ingreso { background: var(--verde-light); color: var(--verde); }
+  .badge-egreso { background: var(--rojo-light); color: var(--rojo); }
+  .badge-pagado { background: var(--verde-light); color: var(--verde); }
+  .badge-parcial { background: var(--amarillo-light); color: #7D5A00; }
+  .badge-pendiente { background: var(--rojo-light); color: var(--rojo); }
+
+  /* ══════════════════════════════
+     ESTADO DE CUENTA TUTOR
+  ══════════════════════════════ */
+  .search-tutor {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    padding: 1.5rem;
+    box-shadow: var(--sombra);
+    margin-bottom: 1.5rem;
+    max-width: 480px;
+  }
+
+  .cuenta-card {
+    background: var(--blanco);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra);
+    overflow: hidden;
+    display: none;
+  }
+
+  .cuenta-header {
+    background: var(--negro);
+    color: var(--blanco);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .cuenta-avatar {
+    width: 48px;
+    height: 48px;
+    background: var(--naranja);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .cuenta-nombre { font-size: 17px; font-weight: 700; }
+  .cuenta-meta { font-size: 12px; color: #AAA; margin-top: 3px; }
+
+  .cuenta-resumen {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid #EEE;
+  }
+
+  .cuenta-stat {
+    padding: 1rem;
+    text-align: center;
+    border-right: 1px solid #EEE;
+  }
+
+  .cuenta-stat:last-child { border-right: none; }
+  .cuenta-stat .stat-label { font-size: 11px; color: var(--gris-medio); text-transform: uppercase; letter-spacing: .04em; }
+  .cuenta-stat .stat-val { font-size: 18px; font-weight: 700; margin-top: 4px; }
+
+  /* ══════════════════════════════
+     TOMA DE ASISTENCIA
+  ══════════════════════════════ */
+  .asistencia-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .asistencia-card {
+    background: var(--blanco);
+    border-radius: var(--radio);
+    padding: 1rem;
+    box-shadow: var(--sombra);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 2px solid transparent;
+    transition: border-color .15s;
+  }
+
+  .asistencia-card .a-name { font-size: 13px; font-weight: 600; }
+  .asistencia-card .a-meta { font-size: 11px; color: var(--gris-medio); }
+
+  .a-btns { display: flex; gap: 4px; }
+
+  .a-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .1s;
+  }
+
+  .a-btn:hover { transform: scale(1.1); }
+  .a-btn.presente { background: var(--verde-light); }
+  .a-btn.ausente { background: var(--rojo-light); }
+  .a-btn.justificado { background: var(--amarillo-light); }
+  .a-btn.tardanza { background: var(--azul-light); }
+
+  .asistencia-card.estado-presente { border-color: var(--verde); }
+  .asistencia-card.estado-ausente { border-color: var(--rojo); }
+  .asistencia-card.estado-justificado { border-color: var(--amarillo); }
+  .asistencia-card.estado-tardanza { border-color: var(--azul); }
+
+  /* Misc */
+  .divider {
+    border: none;
+    border-top: 1.5px solid var(--gris-claro);
+    margin: 1.25rem 0;
+  }
+
+  .text-muted { color: var(--gris-medio); font-size: 13px; }
+  .text-naranja { color: var(--naranja); }
+  .text-verde { color: var(--verde); }
+  .text-rojo { color: var(--rojo); }
+
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gris-medio);
+  }
+
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 1rem; }
+  .empty-state p { font-size: 14px; }
+
+  @media (max-width: 680px) {
+    .sidebar { display: none; }
+    .form-row, .form-row.triple { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .cuenta-resumen { grid-template-columns: 1fr; }
+    .recibo-actions { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     PANTALLA: LOGIN
+══════════════════════════════ -->
+<div id="screen-login" class="screen active">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="data:image/png;base64,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" alt="Logo Yacaré Básquet" style="width:100px; height:100px; border-radius:50%; object-fit:cover; margin-bottom:.75rem; display:block; margin-left:auto; margin-right:auto;" />
+      <h1>Club Yacaré Básquet</h1>
+      <p style="color:var(--naranja); font-weight:600; font-style:italic; margin-top:2px; font-size:12px">Garra, Disciplina y Corazón</p>
+      <p style="margin-top:4px">Sistema de gestión deportiva</p>
+    </div>
+    <div class="login-error" id="login-error">Usuario o clave incorrectos</div>
+    <div class="form-group">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="correo@ejemplo.com" />
+    </div>
+    <div class="form-group">
+      <label>Clave</label>
+      <input type="password" id="login-pass" placeholder="••••••••" />
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">Ingresar al sistema</button>
+    <p style="text-align:center; font-size:12px; color:var(--gris-medio); margin-top:1.25rem;">
+      ¿Sos tutor? <a href="#" onclick="showTutorAccess()" style="color:var(--naranja); text-decoration:none; font-weight:600;">Consultá el estado de cuenta aquí</a>
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PANTALLA: PRINCIPAL
+══════════════════════════════ -->
+<div id="screen-main" class="screen">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADeAN4DASIAAhEBAxEB/8QAHQAAAgEFAQEAAAAAAAAAAAAAAAgGAgMEBQcBCf/EAE4QAAEDAwEEBQUOAwYFAgcAAAECAwQABQYRBxIhMQgTQVFhIjdxdrQJFBUXGDJVV4GRlJXS1EJSoRYjYnKCsSQzQ5Kzc8EmZXWi0eHw/8QAGwEAAgMBAQEAAAAAAAAAAAAAAAECAwQFBgf/xAAwEQACAgIBAgUCBgICAwAAAAAAAQIDBBESITEFE0FRYQYiFDJxkaHRgcEVI1Kx8P/aAAwDAQACEQMRAD8A7Lsa2Z7OJ+yDDJ07Z/icqXJsEF1996zR1uOrVHQVKUoo1UokkkniSalnxUbLfq1w38jjfoo2F+ZLBPVu3+zN1MqmIhvxUbLfq1w38jjfoo+KjZb9WuG/kcb9FTKigRDfio2W/Vrhv5HG/RR8VGy36tcN/I436KmVFAEN+KjZb9WuG/kcb9FHxUbLfq1w38jjfoqZUUAQ34qNlv1a4b+Rxv0UfFRst+rXDfyON+iplRQBDfio2W/Vrhv5HG/RR8VGy36tcN/I436KmVFAEN+KjZb9WuG/kcb9FHxUbLfq1w38jjfoqZUUAQ34qNlv1a4b+Rxv0UfFRst+rXDfyON+iplRQBDfio2W/Vrhv5HG/RR8VGy36tcN/I436KmVFAEN+KjZb9WuG/kcb9FHxUbLfq1w38jjfoqZUUAQ34qNlv1a4b+Rxv0UfFRst+rXDfyON+iplRQBDfio2W/Vrhv5HG/RR8VGy36tcN/I436KmVFAEN+KjZb9WuG/kcb9FHxUbLfq1w38jjfoqZUUAQ34qNlv1a4b+Rxv0UvnT0wnDMb2QWqdjuI2CzS3L+y0t+BbWWHFIMeQSkqQkEp1Sk6ctQO6m1pafdF/MlZ/WRj2aTSYzsmwvzJYJ6t2/wBmbqZVDdhfmSwT1bt/szdTKmIKKKKACiiigAooooAKKKqSlR5CgCmirobHaaqCUjspbHosV7oe41XJfYjMLfkvNssoG8txxQSlI7yTwFa215Njd1lKi2zIbTOkI+c1GmNuLHpCSTS2GjP3Vdx+6jQ1e1HeK91B7aew0Y9FXykHmBVJbHZwo2Gi1RVSkKHjVNMQUUUUAFFFFABRRRQAUtPui/mSs/rIx7NJplqWn3RfzJWf1kY9mk0MZ2TYX5ksE9W7f7M3UyqG7C/Mlgnq3b/Zm6mVAgooooAKKKKACvUpKjwqpCNeJ5VdAAGgpNjKUoA58TVWuleE1QtW6NajsZanT4kFhT8yUxGaT85x5wISPSTwpYOljtncg2W3PbNNpNvRKZlFudGhONuuLSRwUOB4AjiARzFQvptSH0Z5GuMrLId2sISlk2NuZo5FcA0KlNpPlAnjqePHTkBXEbJHt7q15FIisMRxr72aCfIbQOG+R3k1Rbd5a3ohKfE6tYukbtJl2KXactxlOR2iXGWw883HLD26pJSVajVJI114iuOWCVCDLLMeJOF0jrX73VEBakpAPkkqHLgamNtkXSc0qZDZQWdN5KXJaW3lp70IPMfaKyY0ZuXcGLk0EtymjuuK00LjZ5pV461gtzZJfetGed0or7kSGDtX2zRseat9yzlq3IRr1TqmkOSlJ7ApfI6VLdn+37OMWmsP5fcW8nx5awiS+lkIlRQTpv8ADgpI7RXIski/DVyiWyMpt1bxWXHdArcQkakDXgKw8YSIkiRZXUuqiOt6tF4glaFap19GoqEMyxpTb/VfBojVd5H4h/l7H0rtU+LcbdHuEJ9D8WS2l1pxB1SpKhqDWWF6188cd2qbX8SspxWy5I2I1sRusMuQm3FhnXUFCiPK4Hke7SpDiW3ja1Acbubt+j5BCbSXXYcqIhsuIA1IStABSef/AODyrpLIrSW33F5sR7gQaFJCudaDAcmg5jiNsyW27wi3COl5CVc0680nxBBH2VIKvLCypBT4iqayKtrR2p+6pJi0W6KKKYgooooAKWn3RfzJWf1kY9mk0y1LT7ov5krP6yMezSaGM7JsL8yWCerdv9mbqZVDdhfmSwT1bt/szdTKgQUUUUAFVto14nlXiE7x8KvcqTY0FFFeKqIylwnspJOlTtN2gNZ7csQvMqXjdjab34rUBRSq4tH+Iu/03Ry5aHSu89KXatdNmGJR3rNanJE24OFhqW6jWNFP8yz/ADdw7ePdSMXK4XnMcuN0ym8S7u+wkvOOPuEp1PFKEJ5JTr2DTtqu2ajHqQlJJGLBscdqLKmTo+9KeaU40h075aGh0J15q5HjW/2aYtKzuVaMYhPoaaSwZctRGujaVhJH3q1ryKoqdV1nlKUDrXSehhHRE2s321yCNXbUoRSee51gJA++uXG9zjJvuuqKsdqyzUjE254FZrBcoLVsiXCMr4HkSGnGCtS5Dra072+Sd0JS3vKOgH+1RGE89FZSpJU/5IOp5qHYf9qbnbpiki7YzBu1rimVcbCpbgjJ0Bkxltlt9kHvUgkjxSKUfF7XOv14/s9a3G0yRFektrUreIZbQVDu8vgEFJ00Vr3VQovJojrq13Lc2l8uiMRUmK9cEzJFrmQZCddJkVY3xw01IHMac+BrHva7szNg3MsImxmU9WZUZGmrfDQKQORBAPd6KzYq9+M05valSAf6Vlxpb0dJS25upPMHlVLt4vjx36GWOXbXU6U/tfoZKEM3ZcG5RVp61lzylDtQRxH+1R7JkzbVOAtzLzMV8qQ86toltoK5r8nU6DieXaakDdxkJ4lSePZpwrOcmNymC03JVHWsab4HEGqKr3VNcluJmjJxl17DobCYlgt2yrH4GNXRi522PFShEppWodVzUe8eUTwPEdtTvWvnxht5yjZsy+vFMslxkvu9c5FdYS6y6v8A9MDXU+GldzwTpU2JVsjt7QbNc7DPOqVPtxlORnCORGnlgnu0Ppr0dGTXctxZ0YWxn2GVorjFj6Sey653FuEu5zbb1qt1t+dCWy0r/WeAHirSutMT4byUKalsOJcAKClwEKB5EceNaE0+xZtGU4jXiOdWqvpOoqh1P8Q+2ppgW6KKKYgpafdF/MlZ/WRj2aTTLUtPui/mSs/rIx7NJoYzsmwvzJYJ6t2/2ZuplUN2F+ZLBPVu3+zN1MqBBQOJoq40OOtDGVpG6NKNa9qk6ac6gMCqtNleT2DFrYq45Dd4ltip5uPuBOvoHMnwFRTbdtIj7PbAwuPFNxvtyd97WuAg+U86e0j+Uagk+jvrnuzXZM/kd8/tVtUm/wBpr5wcDLpJiQu0NtN/N4d/3d5BbI3t826Q8lxV3HcGxCXlEO4NqbkzZNueMdscgUADVShzB1AHDnSlQ49xtBdhocQh8K3nGJDCm166aacdDX1YixmYjCI8ZlDLLaQEobSEpSPACohtO2Z4ltBtS4V/tLLj26eqltgIfZPelfP7DwPbVc4c1ovpnVF6tjtHzptN0S9IDT7ZjyEcdxXI+g9tSrAr1c8a2sW/JbY2p9EGIp6ayjipyOCA4AO0gHe/01ibYtnF5wHKnMfvC1OAgu2y4JGgkIB4cexQ7R2faKt7Eb+Iu1bHBcAApTjkB9KhoFBxBCSfDeIrneSoyb16PaLb8CNM4XUvcH/A+GJZJCvsBqTHksPNupC2lpVwWk8R9ulQnN9jdun5U3mWI3A4zkyASX2mgtmTrzDrZ568ASNNe3WuaSsPzPAcx+GMHeEywuJUp20uuaBHHeKEE8uJJSew8DwNdQw7aLb8wt3/AAUgplR1br8d3yJEZY5pWn/35GuS3PHfmUvaNDjz6SOB3/YZtctsx5US32S5suLUtAhyurS3qddAlwA6ceArVQtk20/rnkXTBLjNi9Q4EBmUylXWlICFc+SVanTt0HjTdM5OmKjW4FssjQFxSgkjjoOfDnwrdxLpAkEFDqAVcgrgf61KPiC/M4pmeWBBPohBbvHveOzkW3KrFNsstQBCZDeiV/5Vcj9+tVJVw114U82bWvGcjtRseUQo8yE+PJDyOSu9KhxSod40NLPnWwHIbFObexd6RkmNF9Kn4zbqUzmmt4byEq4BfDUajQirIxrv1xfFmC/Aae4nOmbjIaACdxSB3jsqi4Tob7aZrUfr3m0lLYOhCVdpHj2a1rZyLnamnLfLsN6jPMpLbXviC4lStOCVaado0NbOTYrh8NtQcXx2/wA6BKKPeanIS2t53qt5xsFemuhSsjwqccOS20YljzXVIi8HKJRuQiX5hrqHFFG4tJOndrrzHiK3aLI1FS7PZuU8xUp3m20yVpLSRxO7oeBGnDw4eNYM595KkIuNnmoQve3C5FUpKglRSrQjUHQ8DpV+2X+EsLhsPN6KTu7pPEdmnHtq2x2x15aa9yUua7LQ2fQ3z675HY7zjN8nO3KXYnW+omOHVTsdwEoCj2kbp4+imC5ili6AdliRsKyO8hC1SpN0MZS1E6dW0kFIA8CtVM4nlXbjvS2bo9i0sbqtKpq84NU691WatQBS0+6L+ZKz+sjHs0mmWpafdF/MlZ/WRj2aTQwOybC/Mlgnq3b/AGZuplUN2F+ZLBPVu3+zN1MqBBV9I0SBVpA1UKvUmNBVCjoCe6q6pOgSSaiMWoFeY9I/Jb5MDi4uKIbtduQR5KXVjfdWP8XZ6CO6u64QlKba6oaaqdOprh2ASotru+0l24y2mBHymS5IdcUEhKC00QSewaa/dWhu3SjtVkD1vxCxP30gn/innOoYB/w8CpQ+700pSUVthTRbdZxhHbGu1FYV0ckMte+I439zitH8w8PGkxd6Um1N0lbdoxhlJ5J6l1R+/frNs3Stz9iSPhjFbLOj6aFEVxxlf3qKh/SqVk1N9zpz8GzorbrZ0bpWJtuXYTc7QWOrvNsiG9Wl3XTrm2+D6R4pGuo7ik99JBc2/f8AFauUTUPt8V7vMEV33aztpseT4euVAjy7JkUN0rYjSQFocbcSpt1AWngQUK7QOXKseVsauMrY1Yc3xmIp25MwELukBA8p5sjeS6gdqgkjUdo8aVsOWpw9CzAtVTljZS1GX8P3Jjsj2lPu41amsvkAxpKQzFvP/SWsDQsvn+B0ePBQ461OMx2ZW6+ut3qMJEO5JT/c3S1ulLo4cNSn5w8FUruzfMZOGz5DjMNq72G4AN3W0SB5Dqe8a/NWOOhpiNnUGPdLb8L7Fs+MJvQqdx+8AvNsKP8AABrvtjxG8O6uNdjx5eZW+LLMnFsxXxmtx9H7oxZUbadaIsiE58DZhBUkoLcsGM+pJ5g6DcVr46VEkzNqmPvtpxTGLuiJvAqttwmMSmEDtDbm/voHhxArsgve2eK2G5uz+wXV0cC7FuwaQfHdcTqK0d+ibYr40oykY/hkEJ0U42577k/6dAED0nlUa+UfzKJmfXotnPci22qtelgzrB3W5rjPWOMRpjTyQnvIB1Se3ide2tFd892j43aYeTYxbMoi45LUhaX722l+MlC9CCHfnhJB5kkd1c42hNWUZjKax92Vcksp97LnvudY5OkqPlK9Gp3QB3eNO2/fMc2V7ELLactDU1Ua1MxFQm0BxyUsISncS2eKtTwrp4+NT10hZMZ1VxbfVkEG0rM7Db2Lhl2JSXLW+nebvFlcE6GpBHBZ08pIPj41hZdtI2f5baIQk5+zb24sgSNY6+qkcEqSUAEb6dQojUDXTlXJcB245Fg9yuDGK4209jc6UXI1ikPLedhnjvJbKRqkdpSQdNKyEbWM1uWQt39q04U2hKShVuXb/wC71111USN4LHeCKhZiUwamnoyfidLTOoR81/tAzCsuyfB5l495se9oslcdUeFGQdNd5xYBPLU9p8atY70b8kyJ51jaVKtKIiZ707r7WNJL61geSFlI6tsHjpxJ8Kysc6S863IjN5JgTbUJOgelWiUHEtJ/mDRSDp9tMfj16teQWeNeLNLamQZSA4y82dUqB/8A7l2VqoqhFbh6lcrOZrNmmEWPAMTj45j7TiIjSlLUp1e+txajqpSj2k1KAOFeI5VVWkiHZVhQ0URV4VQ8OINNCZbpafdF/MlZ/WRj2aTTLUtPui/mSs/rIx7NJqTA7JsL8yWCerdv9mbqZVDdhfmSwT1bt/szdTKgRcZHEmrlUM8jVdRfcaA1bPbx4VcNWzSBnz66V7yYe23KrTCmOs2uQqLLuDAOiXJAa4eJGitdO8+ArlkJVwnkNwY6WGeSXHBz9A7a7n05sbtcPa1aruzOBduzKBPjfy9X5KF+hQGn+k99c2tQbTNaUN0BLgGg4aVzM23j11s2S8Ttw6lGlcW/U10fDJ7jqUzrq8je46I4aVnjBWUK/u7tPSrvJBqWTAo7rydDuc6oVJKGSptlx9ev/KRpr/UgVw/x18taZx34pmSfLzH+5z7JcduFuhrdkui4wQnylBIS62P5tO3Smy6IGdO3zZ5D99r33bYv3g+r+ZAH92ojv3dB/p8aXi5DJ5rC2WY1vjNOJKTvqLiiD39lbXY3esp2WMT2I1sg3iLMdQ442Hy24kpGnknTTke2u3hZUVHVklsvedZfFea9tDCbb+jnasukvZHhkhmzXpwFbrWn/DSz4gfMUf5h9o7aVbJsay/Z9eUvXu23THZzSt1qcwpSW1n/AAup4HlypvNku3XFr7Kask5x+03FWgRFnDdX3+Srkseg6+GldneYg3KKpqQyxKYWOKFpC0keINbJ0ws+5HWxPFbaY8H90fZiFWHb/tPt0dLXw9bbo2hISlU2IFLHDmVIKST4nWtBmm1LPs2HwddcgK2nlBKYVuZDfWk8NzyfKVr3anWm/wBqGz7YnjeNzsqyXDbMzFiI319TH6srUeASlKNAVE6AemlUynaNd7bBcuOB4/ZcIjPrS1GahwG3JriSeG+6oEg6cdBWZ48INNvuaX4njbXGrr+pB8Zi5CMyZagxG4L9sWFayEBYYWORKeRWO48jzFT74DmqvcW/ryG5uXtlalm4OvF10lSSPJ3tQnmdCBqPsrTY1IuERjWJYJslatVvOuuIStaydVKOp11J151uhfJqQVTLBcWmxzKN137dEnWuDm5OY7OOP0ivlbZ7DDw8KUOeWuUn8dF+hr7db8iwzIZN/wASkh6bIaUlyVI3XJCN5Wrikbw0Kld5HLUdtRhq0/Cb90mSs6iRWY7apT6ZxLT0h5RUS0Ep8oq8k6nkNR310a23W3T9TDltuKA4p5KB9B0NafKrBFdmC+JgMyVtDSUwpAPXN941/iHYaWF4xbz8rKX6GfxP6ax7a3PFIlbouOLiNuvLfYU4gEtqmq0Go5fO1qc7N8tu+zee3dsPnuSbcg7020LfK2ZCNfKKNdd1empBH+3A6DI7HjL+MuXS3QIwSkJeQpCeYCuKT/UGtFeIgxnLlOwGi3B3WkPJSo6JK9dCfu0roY+S7ZcoSafXo/j0PI530/fhxdikmu/+D6R4Pktty3FoGRWd7rYU1kONntHek+IOoPoreA0sPQovy2ZuTYS46OpYU3c4aSeIS7wcA8AoJPpVTO9ld2EuUU0cuL2tno5146PIoJ5V6v5hqaGWKWn3RfzJWf1kY9mk0y1LT7ov5krP6yMezSamxHZNhfmSwT1bt/szdTKobsL8yWCerdv9mbqZUCLrPzT6arqhn5p9NVE6GoskemrKyEpUTpoB216uQyl3qi6gL013d7jp36VG9pt2Fn2f325oWApiC6oHXkd06f1qEmktk64Oc1FeogvSbyr+02cXe7Ba1NJlBiJr/Chvh/7E1EMduqJdwcb1ALraXAn+VQGihV6PbXso2hWDHGwp1c6W22odp3ljeP3Amp90zLZjmHbaIicZhJiPqhNvzkII6tSySBokfNJSkE+nWsEKfOpe+72dL6hhB5HlQX5Ul+yK7ZKRJjjfIS4Bood9ZKW0JJUEjXv0qDY9em57jjkY6bigEd/LWpO3d23AWlHdeA4kaH+lebuxZ1zaR4+dTi9GXKekxwpxDfWo013Ug73/AO6wBkluQvR95LS+Wijx/rVSrs8DwS2sDwI1qy/MckjRxiOrxLYVp99FdS7TQRh7lT7lmvSeqdLbxB1QU/OQe8EcjUxxfaRtPw1gR7XeY95hpGjbNx3utSO4OJ5/bUDCSheqUJT/AJUhOv3VUV8N4qVw71Vtqvsof/W+nyXwnKt9GTDbHtOyfaNDstou9mRbYcOQZMncmpdDywkhI0AGgB48dahs+xfCvUvPzJLXVnfb6ogEHsNUKcQkaqI0JrYMzUoa6h4K3QNN5J46UZOVbZJSXTQTum2mjV/Bq45LSMluqUngQlYB+/SvLpBjQ7c7IZus8SgBuOqmLO6SQN4juHMjTsqzMRYHisO3SWByKBJ0+zjxqhNrskhpxQus9TehHVe+AQfDXT/3qytvabf8GpZ2S2tzZIXIseZdmbU9cbTf3G2StV2tTjiVIOmg3ipCfKPcCeVZq/h+zAq3vhaGBxGm6+gf7K/3qN4jdLfjsG2Q0X20zmJiFOvMtJWl+Cf5Fnd0WrsAH9KlRvcuQN632SY8jscd0aSR4A8f6Vh8ShfC/SguHz/foz6n4NfVbiKTm+ZGLz71etUpywTg2ZS0tPW91Omq1K0BAPzT48qxrvOVMt2TGbapaHC2lCFtaOttqbTrxWD/ADceVZF5lwr1fw3JaXapFvacddcO6l0qA1GhGuunOsO4z7jZcDlsXSIoquDanG5KNSlSnOJCv5ToT4cK31R4xitfd0/X9/Uw5MuTm9/bp/p+3odZ6EspczbTLcIUf/hzyyeP/Va0p2hST9AGYhGc3wusp6yZbkJZUTxSlpaQQPA72v8App1FOoQN5a0gdpJrv1Ja0jw06pVaUl8lw8h6R/vVSvmn0VbQtDiErbUlSVaEEHUEVcX80+irCJYpafdF/MlZ/WRj2aTTLUtPui/mSs/rIx7NJqbEdk2F+ZLBPVu3+zN1MqhuwvzJYJ6t2/2ZuplQIuM8yKqX2GrbZ0WKuqGoqL7jEm6ezspO1nGURpkiKVW06rZcKD/zD3Vx53Is6VaX7R/be8O299O65HkSVuIUNdRwJPd2V1/p7ana/i+nMWw/+Q1HejziGIZ1l8vG8ocnMyH4vXW5yNJ6vij56SNCCdCFf6TXPvlN2qEXraPVeFU4kMKWRfBtp+nocuxWZkeMZtbssgqhyp9vcDjIfSSgnQjiBp399Y+1K8ZPnuYy8ovERhMuSEJUmNwQAhASNAST2a12fpC7I0bL5Nqk22fNuNsuJcbUuQhIU06NClOqRx1Tvc/5TVGyjYjk20PEnsht9ygQI4kLYjolNLJe3OBXqnkNdRyPI1CNmRGXBJGm3F8JuoWTKclt692L/Y3ptnfKn47oZXwUdOR76kMiTBuDIUqQhZSOCkq3VJ9HbUgzaxSMVya54/MlQ571uIQ85E3ijf01KBvAHUa6HxqTp6PG0mZHalIwphbbzaVpUmcwkkEajUFYIPHuqD3ZLbj1XscvN8DxIxjZXdrl7nNoMdp0hbV2mOoH8IkHT7dK3jDvUt9WgaJ/zE/1rEyvBZGL3lyy3+0KttwaQlxTW+lR3VDgQpJIPI9vZWrFoSkpSiZMG8QlKErUSSewAcTVNqhOXGT6/oVP6VyLK/NhNOPvskD1wLKCpxTaAO1XDStQ7kUZyQmNHd98PLUEjVQQjXxUrQAeNbeNssyuQgPM4JkspCk6hwwHSCPDUVg3nCp1kQk3zGbna0q4JVLiOND0akaVKNNcOri2VU/T6m+Pmx37bNqmw3dyMqSq/YYyoI3/AHuu9tF0/wCHgdNftrTRsmhH+5fdQ26glKkqIUOHcoag1hGzW1J1MfXt51tLXgdxucZEu2Ypdp0ZZIS8xCdcQrQ8dFAaGm3RZ0jBmvI+k7aUnZOKTNZcr5ZS8EyIrL4P/UQlK/vHMVhKlYs+okLeig89wKRr9g4VvbtiMiyOMt3jHZtsVICiz78iLa3wnTXd3gNdNR99UWjHfhW6xrVabT78nSV7jLLSQVLOhPDUjsB50KyuLUUnsnX9JylU7VauK9TCx+7Y5a1w1Q3Z4fUXFT1PtpU2rj5Ab4bw4cSSaklz2jttQS1bEPvPK4BTjfBHj41KGNg205wf3WCuIOnDfkR0f7uVflbDdq8OK7Jdw5akNo3iGZjDiyB2BKV6k+AqGRjRvmpyr3o6mDOrFqdKyUt/BzKZeYsq0mLHsktx4q6wSHdCor11Kj6azbrIyjaBNtOMw7UhpcqUhpptKyd9auAJ7gOJPcNayLXb5NyyCDZWUiPLlzW4QS+lSeqcUvc8saajQniKZHA+jjnONX9m/wATN7NBnNNqQ2tNuMjq94aFSd9QAVpw17iatx6uU0+PZ+pHxd041Th5rlKSXZdGcvyzZzlGw22Rrg3tKjRr3IaUzDh2+MetUk/PJUr5qR/Np6K5Nl94yu4QVybxll5uLm8NQ/LWpPHwJpvsp6Nrt8lzciybaNd7ncVNkl0RWwNEp1CU891PgKTvJQU2h5JJUUrAJPM6EitFspwsio9mYfD6sbJxbJWbc4r9j6U7GyV7KsTWSTrZ4nP/ANFFS135hqJbF/NLiZ/+TRP/AAoqVvHkK3I8yy3S0+6L+ZKz+sjHs0mmWpafdF/MlZ/WRj2aTU2I7JsL8yWCerdv9mbqZVDdhfmSwT1bt/szdTKgQVkA6jWserrR4aUmNCT9PUH44MY/+mn/AMhrkuOXmXjOS2zIbeVJk26QmQN08VgHyk+hSSRTNdOnApN0t9iz2A2pw2hZiz0ga6MuEbi/QleoP+cd1Kusca4ufN13Rkj6H9LY8cnw+2p+r1/A9e16wNbXNiRNjU27JkstTrW5vAAODiAT6CoGq71Mt2xXYIgNBKlWqAliOnTQvSVDQaj/ABLJJ+2oR0Icpk3LDLri0lKlJskhBjLJ1/ungpQR9ikr+wiod04MmlP5XaMPTqiHFi/CDgB/5ri1KQn/ALQk/fXQnalX5nweSowZ2Zqw37nHtl1lezLarYrbNcU85cLkJM1ZHFaUkuuk+ndP3082bZrFxfKMQsTpQDf5rkVJP8O60VD/AO7cH20uvQhx333ml6yh3eUi3REw2SRqN90havuShP8A3GupbcdlWVZztDxzJLPkUG3x7KEqbZfbWpXW9aFqUCnhxSlKfsqGIn5fJ931L/HrIzy/Lj+WHRf4IB05caS3Nx/L2GkDrAuBJVodSfnta+HFY+2tL0IrNbbhnd9uM6I1IkQITRjKWne6orWd5Q8dABrzrv3SIxlWWbHr3AbQlctlj33G0Tr/AHrXljT06EfbXDege4lzKMqKdfKgRlcf86qUqtXqSLas6UvCZ0b7NEj6VO1bM8MzK2Y/i8yLAZche+nXVxkurWStSQnytQAN308a3+I7bNnGT7NobO0C+WVu4yo5buEJxtW5vcUnydDpqOPPtrlHTg/u9q9qWvyEKtACVHgCQ8vh/X+tYGzro8ZLmeF27Jmslt0Fmc2XG2HIrilJTvEAkg6HXTWk7LPMcUtocMXBeHXOyfGT326nIpkdpd2kQbMpclpctbEIgalxJcKWvvG799Pi9LtmxvYtbxISlTVrYjxeJ0C3FrSgn7VKJpW+jjh5vW3RiDIUiRGx596VJWgeQ4WllDZHpXooeimZ6RuCSNo+KRMbj3+HaG0yhId69sr6wJSoJAAI4aq1+wUYtfBOTXVh49mq+ddUHtRRoOmFjqMg2SJv0ZsOP2d5MtCkdrKvJXx7eBB+yls6OoB254lpyMtf/icp3LLj/W7NI+LXeYzctLb7xkPtjQOgI3CQOzhpSYbELTKsXSNsNjm8JNuur8VzxKG3Br9o0P20X1/9sZol4XmccG/HfttDOdKvMcgwjZqxdsanJgzV3JmOXVNJcAQoLJ4KBH8IrV9ErPsrzvHr07k8lud7zlobYlIYS3vhSNSnyeB0Pd31M9uOdWvZ/hqL7drI5eI6pjccR0FGu+oK0V5XDs/rW0sl6YuuzpvIsRhMKEyCZUNhQCEqWU6hKtOXHhWlrrvZwlJeVrj3fcVfbXDhwul5aBCCU9fcbZIfSkaaOFYBPpISkn00xfSQuF9tWx67zcbkTI9zb6nqXIiSp1ILyArdABPzSeykzsV7uuSba7Jf76oKukzIIipICd0NqS6lPVgdgSBu/ZT07Ucxi4HhMzKJkJ6azE6vVllQStW+tKBoTw5qqqqSkpNe50PEKZ0yqjLq9IRC95XtJlxVLvF/y5cdKdFqeLzaADw4ndA0qC39tSrQWmkqWorSlKRqSTr/AFNMztQ6R1nzLZ/esYj4rd4b9wjFlDzjzakJVqDqrQ66cKi3RW2ff2z2jMXOexv2mxLRMe3hqlx4HVpHcfKG8R3II7axzSd0FGWz02LY4+H3ztqUNLp01scjZvbJNl2e47aZqQiVDtcZh9I7FpaSFD7wa3Kzqo1dWdE61YrrI8CwpafdF/MlZ/WRj2aTTLUtPui/mSs/rIx7NJqTA7JsL8yWCerdv9mbqZVDdhfmSwT1bt/szdTKgQV6k6HWvKKAKbrAhXa1ybbcI6JMOU0pp5pY4LQoaEH7K+fG2XBJ2z3NpVkkb7kRR62DIUng8yTwP+Ycj4ju0r6GNK0Oh5VCttezm37SMSVbH1Ij3COS7b5RGvVOacj3oVwBHoPMCsOZjedHp3R6P6c8Z/43I+/8kuj+PZ/4/wDRwvoJOoaezRby0oQDC1Uo6AeS9UK6Y8yJM2ztPQ5LMhtFnZSpTTgUAoOunTh28eVcoulkzSBktwxZrFr45cWXeqlRmUObqlDkTu8FJ0OoPIg8OdaHKIeWYxIXDu9hcs8hISpTTze6vQ8QdO6qeM3SoNaN0bMavxKWVGfJdX0Q1nRp2lbNcB2XMwrxkrTN1mSHJUplEZ1a2yo6JSdxB1ISB99cQ2gZtfcpy+83dN+vDcOTLWuMwmY6httoHRGiNQBwAPLtrl0h+7m3Cc3MCkHmlA5VpV3CasnWS54+Uam42WQSi9aMyuxcK923QcuXv8jm7Oekpbsa2cWywXiyXS5XOCyWFPJdbSh1KSQg7yla67u7rw51xfCdoNywXM5eR4suPDbedcT7ykLC21x1OFSW1kdqexQ4iuKlx1Z1U8s+k615oe1Svvq11TaXU58M7FqcuNe1L0bHIl9Kqy3NhpGQbPLbcHWuI3prbiUnwC0EitTmPSqvN1s7lqx23W3Hm3EFv3x75651tJ/kAASDpyPZXENluDWS94tkGYZTc58SyWQsNuogMpckOuOq3UhO8QABwJ1q9fNn9hYxfLL7ZckVdotnlwGojqGdxLyJAWTvg8UqTugEDhqDVjhJruZo5NEZcvL3/kmexXbC3svdurkG0Wy5v3BSAX3pam1pQkfNGgOoKiVVq9rW0hW0jLv7QXJEOIExkR2oyH+sS2ASSQSBxJNa/GdlMC62bZ3PXc5TasqursGQgISeoShYTqnvPpqXYTsAtOQWdl9dyvgfk3KdBQ8xHaXHjBhWiVu6qSrRXckHkarlTJx48jXV4pVC/wA7yk2bPYVt0Vszsk6zfBjd4iSJPvhkJmhrqSUBKk6EEaEpB9JNYDm062yNv8Laaiwvw4jbiXZMRuUhxbjgaU2VJPAcRucPA99L3c4xh3GTEDoc6l1be+AQFbqiNePoqwC4P4lD0Gmq5JJb7EJ5uPOcp8Nb9mN90g9tuN7SMEj2K1Wq8RZbdwZkqVJaQG91AVrxSs8fKHZW16Lu2PG8RxGXjGZXQwW48kuW9amnFpU24NVI1Qk6bqtTx04KGlJemTKRwD7gP+Y1n2yddH30sMyF7xPMnUCoyjZGXJvoX1XYl1P4dRe29nf8ym4j8pC2XrGL1ElWWdeIdwccQrdSwsujrUq3tN3iN7s4K8KcXPLJj+0zCpmMG9I97ywgl2G6ha07q0rGnMc0ivnxs/wfPs3vLltx+C1LaZ099TX/ACI0cHiOsWRz/wAI1PcKZjCui03FDT96yK5iSoeWq0NiIls68RvLUVq9O6KdXLq9dGRzFT9qdjUo9O39Htw6JrCGlfBubSys8UiTBQePpSRXc9jWCRNnuCxLCypD0s/306SlOnXvkeUfQNAkeAHjWHs02as4JKkvxMlyW7oeQEJYulw65DXHiUgJTxPDidfDtqcqdHzSClXcashTGL5JdTHkeIZFsPKlY5RBxWqvAVRRRWgwBS0+6L+ZKz+sjHs0mmWpafdF/MlZ/WRj2aTQwOybC/Mlgnq3b/Zm6mVQ3YX5ksE9W7f7M3UyoEFFFFABV1tevA86tUUNDLq2kFRWEgLI0J04muF9LDZf/bHGfhy2x9+6W5s7zaRqp9nmU+JHMfbXdEL14GvVoC0kHtqmdaktM0YuTLHsVkfQ+TkVJtkxy3ygfezx0ST2VpL3b1wZZABLauKFdhFOP0qdgq1LlZfisPejK1dmxWUaqaVzLiAOY56j7e+lXUgLb+DLikjT/lO6aViU5VT2/wD75PTypq8Qx9Qf6fD/APF/6ImPsqT3HAM2t1l+Gp2LXdi2lCXPfS4qur3VAEK3tNNDqOPjWkuNufgSNxxKtz+FXYRTUZltJ2fStnt4jx8mtq5U/FYtsS0wzJ99l9CEgpUVDqtwEHUjjprxrbCXJbR5W6idM3CxaZyLBrnkeAbNpF+VDtlxsmQSUxV2y5QHHmXi1qoOb3kpSQddOOp05cK3EzMNp1jtl0yLIdn1res2RuRlqTcLOr3qCylSWQ2kKSEjdPDXUnhUuzDONlt52cXHZ5Ev0sNWq1xfgmQ9G/4Vclk6qLWg3wtwOLBKgBoK9zfPMCnYYZtwyRi7XnWAYzVvRKjuPdTu6plMqPUkJCdARqdeVTK9EXi5htVw2ywnJez6ExBXPXKsq5doXuwXnTyYO8N3jySrX7axMc2g7S8Zt67f/ZC3ypNiuK31SZ1vcW/CkyVAcSFgJUpWmgKfvroOa5viQxvNsht+bRr6b7dIEuLaypTb0NDbiFK8hzTUgJ3PI14eFYGeZvgCGcuudry1i5PZberdMbioiuoXCbZdS4vrSpIB4AjROtAHGL1s92kOXUSLniN6TLuMhRTvQ1Auuq1WQBpz5nTwrT5Th+UYuhlWRWC4WtL5IaMphTYWRz01512XpIZXi95nfD2J5RaH5C7l1oEETm5JQUnyllzRsaf4AOfpqD9I/KomYbTpM+zXRy423qY6WTqvcCgygK0SoAjygdeFAKLb0jmfEqGnPXQV1TYdgErKsph2VCuoVJBdkv6a+946eK1keA0A7yQO2oZabaiEgTp/MHVDfM603/QPsK37ffsoks6uPzG4bep0LTbaetIH+ZSm9fQKySmrp8V29T0OPjvw6h5El9/p8b9X/oYnAcRs+J2CJa7VAREjR0/3TXMgnmtZ/icV2q+wcNSd5c7hAtkRUu5To0KMn5z0h1LaB6VKIFF1msW22SrjJVusRWVvOHuSkEn+gpGctvGZbVMyee95XKe5rvMQo7K3BFZJGmiUjgNCnVXb2mtZ5+Um3tju2XILDe9/4FvdsuXV/P8AekpD276d0nStg4hK06KH291cOxbo8wbFaZLzWSTTkO8HYFxYQY5iKAPDdClbwJPlanly07ei7JMll5Ph6JN0bS3dYb7kK4ITy69o7qiPA8D9tAiSjUKKFcx294r2qpI0UhfjpVNTIhS0+6L+ZKz+sjHs0mmWpafdF/MlZ/WRj2aTQxnZNhfmSwT1bt/szdTKobsL8yWCerdv9mbqZUCCiiigAooooAKrQsjgeIqiigC+CFDvFcY2t9HTC83W9PgBVhujmqlOx0BTLiu9TfDQ+KSnx1rsIOnKq0uHtGtVzrUlpl9GRZRLlW9MQXOujztJxhC0rswyK3I13X7aS6pKfFvgvl3A6d9cRvmMSochaEtuIcRwWy6ncWg9xB419awtJ7a1t+x6wX9rqr5ZLdc0AaAS4yHdPRvA6fZWf8O4PcHo678XryIcMqvfyuj/AN7/AIPkQ626yoodbUnwIpgcXkxbJg2yC4RrdaHJFxuM2JNVJhtvFxtUtCfK3hzCeAJ5dlNpf+jxsjvIJfxREdZ/ijSXW9P9O9u/0qIXDoibL5XVhu5ZXEQ0SW0M3BBS2SdfJ321aVcufqcu2OPvdbevlf02cqxZu1XDbLnORZDDxWLZsWcet9vRKjtxoinVvFKA5upO8oJBOuhNcK6QeNxMY2r3aFa+pXa5CxMt6mVhSCw6N5OmnZxI+ynDb6HuzQb4ev8AmkhDi99aHLgzotXedGRqfGpLaOjHshguNuSLHNujjYASqbcHVaAchokpGnhppUm36FcI1t/e/wBkfOSBa5kxYLbe6P5iNAK65s62HZ3kHVOWnF5jgVxEuWn3uwnxCl6b3+nU19AsbwTDMbKVWPF7RAcRydaio6z/ALyN7+tSIqA5mqZVSs6SfT4OlTnY+Kt017l7y/pf2LRs16KFohPs3LP7sbxJRoRBhlTcZJ7is6LUPRu0w9ltNrscZm3WiBGgQ20brbLDYQkfYO3x5ms1TncKtuFR0UD5QOoq2uqMOyMOTmXZL3ZLZi5VbPhnGbpaN7cM2I6wFdxUkjX+tL9Ktr9+2Xe+8bcuVq2hYtGTbp8e3PKakvNtqCd1QSQVpKQFJI14jTjTItrC07w+3wqJZps6xvKZyLnJRLt92bTuouVufMeSkd28OCv9QOnZUjOL9sF2zox6Rc42eXq/T0ySgx3X3FSUsFIVvA7yt4a6pHAHjz0ruGweBOYw+VeLjHVGkX64v3TqFc20OkbgPjugH7a1uIbB8Ax25puPvebdpDat9s3F5LiUK791KUpJ/wAwNdSJAGp4AUAWZX8Ce3e1qmvCrrHCvsHBNe1NEQpafdF/MlZ/WRj2aTTLUtPui/mSs/rIx7NJoYzsmwvzJYJ6t2/2ZuplSlbN+lvs4xvZ3jWOzrJljku1WmLCfWzFjltS2mUoUUkvglOqTpqAdOwVv/lo7LfoHMvwcb9xRsBlqKWn5aOy36BzL8HG/cUfLR2W/QOZfg437ijYDLUUtPy0dlv0DmX4ON+4o+Wjst+gcy/Bxv3FGwGWopaflo7LfoHMvwcb9xR8tHZb9A5l+DjfuKNgMtRS0/LR2W/QOZfg437ij5aOy36BzL8HG/cUbAZavQSORNLR8tHZb9A5l+DjfuKPlo7LfoHMvwcb9xQAzAWrvr3rFeFLN8tHZb9A5l+DjfuKPlo7LfoHMvwcb9xS6AMz1ivCjrFd9LN8tHZb9A5l+DjfuKPlo7LfoHMvwcb9xR0AZcqUeZNeUtPy0dlv0DmX4ON+4o+Wjst+gcy/Bxv3FMBlqKWn5aOy36BzL8HG/cUfLR2W/QOZfg437ijYDK6EK3kHQ9vcarD5Hz2z/p40s/y0dlv0DmX4ON+4o+Wjst+gcy/Bxv3FHQBmC/8Aytr18eFUKK3PnnQfyilq+Wjst+gcy/Bxv3FHy0dlv0DmX4ON+4pdAGWopaflo7LfoHMvwcb9xR8tHZb9A5l+DjfuKewGWpafdF/MlZ/WRj2aTR8tHZb9A5l+DjfuK5D0rukHhm1jZ3Ax3HbZf4suNdm5q1z2GUNlCWXkEAodUd7VxPZpoDxpMD//2Q==" alt="Logo" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0;" />
+      <span>Yacaré Básquet</span><span style="font-size:10px; color:#AAA; font-weight:400; font-style:italic"> — Garra, Disciplina y Corazón</span>
+    </div>
+    <div class="topbar-user">
+      Bienvenido, <span id="topbar-nombre">—</span>
+      <button class="btn-logout" onclick="doLogout()">Salir</button>
+    </div>
+  </div>
+
+  <div class="main-layout">
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Principal</div>
+        <div class="sidebar-item active" onclick="showPage('dashboard')">
+          <span class="icon">📊</span> Dashboard
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Finanzas</div>
+        <div class="sidebar-item" onclick="showPage('operaciones')">
+          <span class="icon">💰</span> Registrar operación
+        </div>
+        <div class="sidebar-item" onclick="showPage('historial')">
+          <span class="icon">📋</span> Historial
+        </div>
+        <div class="sidebar-item" onclick="showPage('cuenta')">
+          <span class="icon">👤</span> Estado de cuenta
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Operaciones</div>
+        <div class="sidebar-item" onclick="showPage('asistencia')">
+          <span class="icon">📅</span> Asistencia
+        </div>
+        <div class="sidebar-item" onclick="showPage('atletas')">
+          <span class="icon">🏃</span> Atletas
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Finanzas</div>
+        <div class="sidebar-item" onclick="showPage('cuotero')">
+          <span class="icon">📅</span> Cuotero
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Sistema</div>
+        <div class="sidebar-item" onclick="showPage('usuarios')">
+          <span class="icon">🔐</span> Usuarios
+        </div>
+      </div>
+    </nav>
+
+    <!-- CONTENIDO -->
+    <main class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="page-dashboard" class="page active">
+        <div class="page-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px">
+          <div>
+            <h2>Dashboard</h2>
+            <p>Resumen general del club — <span id="fecha-hoy"></span></p>
+          </div>
+          <button class="btn btn-outline" onclick="sincronizarTodo()" style="flex-shrink:0">
+            🔄 Sincronizar Sheets
+          </button>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card naranja">
+            <div class="kpi-label">Atletas activos</div>
+            <div class="kpi-value" id="kpi-atletas">30</div>
+            <div class="kpi-sub">8 categorías</div>
+          </div>
+          <div class="kpi-card verde">
+            <div class="kpi-label">Ingresos del mes</div>
+            <div class="kpi-value" id="kpi-ingresos">Gs. 0</div>
+            <div class="kpi-sub" id="kpi-ingresos-sub">0 operaciones</div>
+          </div>
+          <div class="kpi-card rojo">
+            <div class="kpi-label">Egresos del mes</div>
+            <div class="kpi-value" id="kpi-egresos">Gs. 0</div>
+            <div class="kpi-sub" id="kpi-egresos-sub">0 operaciones</div>
+          </div>
+          <div class="kpi-card azul">
+            <div class="kpi-label">Saldo actual</div>
+            <div class="kpi-value" id="kpi-saldo">Gs. 0</div>
+            <div class="kpi-sub">Acumulado</div>
+          </div>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Cuotas pendientes</div>
+            <div class="kpi-value rojo" id="kpi-pendientes">0</div>
+            <div class="kpi-sub">Atletas con deuda</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Cuotas parciales</div>
+            <div class="kpi-value" style="color:var(--amarillo)" id="kpi-parciales">0</div>
+            <div class="kpi-sub">Pago incompleto</div>
+          </div>
+          <div class="kpi-card verde">
+            <div class="kpi-label">Recibos emitidos</div>
+            <div class="kpi-value" id="kpi-recibos">0</div>
+            <div class="kpi-sub">Este mes</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Próximo recibo</div>
+            <div class="kpi-value text-naranja" id="kpi-prox-recibo">REC-001</div>
+            <div class="kpi-sub">Nro correlativo</div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <h3>📋 Últimas operaciones</h3>
+          <div id="ultimas-ops">
+            <div class="empty-state">
+              <div class="empty-icon">💼</div>
+              <p>Aún no hay operaciones registradas.<br>¡Registrá la primera desde "Registrar operación"!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── REGISTRAR OPERACIÓN ── -->
+      <div id="page-operaciones" class="page">
+        <div class="page-header">
+          <h2>Registrar operación</h2>
+          <p>Ingreso o egreso de dinero del club</p>
+        </div>
+
+        <!-- Tipo -->
+        <div class="form-card">
+          <h3>📌 Tipo de operación</h3>
+          <div class="tipo-selector">
+            <button class="tipo-btn" id="btn-ingreso" onclick="setTipo('INGRESO')">
+              <span class="tipo-icon">💚</span>
+              <span class="tipo-label">INGRESO</span>
+            </button>
+            <button class="tipo-btn" id="btn-egreso" onclick="setTipo('EGRESO')">
+              <span class="tipo-icon">🔴</span>
+              <span class="tipo-label">EGRESO</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Datos generales -->
+        <div class="form-card">
+          <h3>📄 Datos de la operación</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" id="op-fecha" />
+            </div>
+            <div class="form-group">
+              <label>Concepto</label>
+              <select id="op-concepto" onchange="onConceptoChange()">
+                <option value="">— Seleccionar —</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Buscador atleta (solo ingresos de mensualidad/matrícula) -->
+          <div id="bloque-atleta" style="display:none">
+            <div class="form-group">
+              <label>Buscar atleta</label>
+              <div class="search-box">
+                <input type="text" id="atleta-search" placeholder="Escribí nombre o CI del atleta..." oninput="buscarAtleta()" autocomplete="off" />
+                <div class="search-results" id="search-results"></div>
+              </div>
+              <div class="atleta-selected" id="atleta-selected">
+                <div class="atleta-name" id="atleta-selected-nombre">—</div>
+                <div class="atleta-detail" id="atleta-selected-detail">—</div>
+              </div>
+            </div>
+
+            <!-- Período -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>Mes del período</label>
+                <select id="op-mes">
+                  <option value="">— Mes —</option>
+                  <option>Enero</option><option>Febrero</option><option>Marzo</option>
+                  <option>Abril</option><option>Mayo</option><option>Junio</option>
+                  <option>Julio</option><option>Agosto</option><option>Setiembre</option>
+                  <option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Año del período</label>
+                <select id="op-anio">
+                  <option>2024</option><option>2025</option><option selected>2026</option><option>2027</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="duplicado-alert" id="duplicado-alert">
+              ⚠️ <strong>Atención:</strong> Ya existe un pago registrado para este atleta en este período. Verificá antes de continuar.
+            </div>
+          </div>
+
+          <!-- Proveedor (egresos y otros) -->
+          <div id="bloque-proveedor">
+            <div class="form-row">
+              <div class="form-group">
+                <label>CI / RUC del proveedor o pagador</label>
+                <input type="text" id="op-ci" placeholder="Ej: 2511548" />
+              </div>
+              <div class="form-group">
+                <label>Nombre del proveedor / pagador</label>
+                <input type="text" id="op-nombre" placeholder="Nombre completo o empresa" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label id="label-nrodoc">Nro de documento del proveedor</label>
+            <input type="text" id="op-nrodoc" placeholder="" readonly />
+          </div>
+
+          <div class="form-group">
+            <label>Detalle / Descripción</label>
+            <textarea id="op-detalle" rows="2" placeholder="Ej: Pago de mensualidad de Alan Mendoza"></textarea>
+          </div>
+        </div>
+
+        <!-- Monto con doble validación -->
+        <div class="form-card">
+          <h3>💰 Importe en Guaraníes</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Importe Gs.</label>
+              <input type="number" id="op-monto" placeholder="Ej: 160000" oninput="validarMontos()" />
+            </div>
+            <div class="form-group monto-validation" id="monto-validation">
+              <label>Confirmar importe Gs. <span style="color:var(--rojo)">*</span></label>
+              <input type="number" id="op-monto2" placeholder="Reingresá el mismo importe" oninput="validarMontos()" />
+            </div>
+          </div>
+          <div class="monto-match" id="monto-match">✅ Los importes coinciden</div>
+          <div class="monto-error" id="monto-error">❌ Los importes no coinciden — verificá el monto</div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn btn-secondary" onclick="limpiarFormulario()">Limpiar</button>
+          <button class="btn btn-primary" onclick="abrirConfirmacion()">Revisar y confirmar →</button>
+        </div>
+      </div>
+
+      <!-- ── HISTORIAL ── -->
+      <div id="page-historial" class="page">
+        <div class="page-header">
+          <h2>Historial de operaciones</h2>
+          <p>Todos los movimientos registrados</p>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input type="text" id="filtro-historial" placeholder="Buscar por nombre, concepto, nro..." oninput="filtrarHistorial()" />
+            <button class="btn btn-secondary" onclick="filtrarHistorial()">🔍 Buscar</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Tipo</th>
+                  <th>Concepto</th>
+                  <th>Nombre</th>
+                  <th>Período</th>
+                  <th>Importe Gs.</th>
+                  <th>Nro Doc.</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="historial-tbody">
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <div class="empty-icon">📋</div>
+                      <p>Sin operaciones registradas aún</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ESTADO DE CUENTA ── -->
+      <div id="page-cuenta" class="page">
+        <div class="page-header">
+          <h2>Estado de cuenta</h2>
+          <p>Consultá el historial de pagos de un atleta</p>
+        </div>
+
+        <div class="search-tutor">
+          <div class="form-group">
+            <label>Buscar atleta por nombre o CI</label>
+            <div class="search-box">
+              <input type="text" id="cuenta-search" placeholder="Escribí nombre o CI..." oninput="buscarCuenta()" autocomplete="off" />
+              <div class="search-results" id="cuenta-results"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="cuenta-card" id="cuenta-card">
+          <div class="cuenta-header">
+            <div class="cuenta-avatar" id="cuenta-avatar">—</div>
+            <div>
+              <div class="cuenta-nombre" id="cuenta-nombre">—</div>
+              <div class="cuenta-meta" id="cuenta-meta">—</div>
+            </div>
+          </div>
+          <div class="cuenta-resumen">
+            <div class="cuenta-stat">
+              <div class="stat-label">Total pagado</div>
+              <div class="stat-val text-verde" id="cuenta-total-pagado">Gs. 0</div>
+            </div>
+            <div class="cuenta-stat">
+              <div class="stat-label">Saldo pendiente</div>
+              <div class="stat-val text-rojo" id="cuenta-saldo">Gs. 0</div>
+            </div>
+            <div class="cuenta-stat">
+              <div class="stat-label">Último pago</div>
+              <div class="stat-val" id="cuenta-ultimo-pago">—</div>
+            </div>
+          </div>
+          <div style="padding:1.25rem">
+            <table style="width:100%">
+              <thead>
+                <tr>
+                  <th>Período</th>
+                  <th>Concepto</th>
+                  <th>Total</th>
+                  <th>Pagado</th>
+                  <th>Saldo</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="cuenta-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ASISTENCIA ── -->
+      <div id="page-asistencia" class="page">
+        <div class="page-header">
+          <h2>Toma de asistencia</h2>
+          <p>Registrá la presencia en cada entrenamiento</p>
+        </div>
+
+        <div class="form-card">
+          <h3>📅 Configurar sesión</h3>
+          <div class="form-row triple">
+            <div class="form-group">
+              <label>Fecha del entrenamiento</label>
+              <input type="date" id="asis-fecha" />
+            </div>
+            <div class="form-group">
+              <label>Categoría</label>
+              <select id="asis-categoria" onchange="cargarAtletasAsistencia()">
+                <option value="">— Todas —</option>
+                <option>2005</option><option>2007</option><option>2009</option>
+                <option>2010</option><option>2011</option><option>2012</option>
+                <option>2013</option><option>2014</option><option>2015</option>
+                <option>2016</option><option>2017</option><option>2018</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Entrenador</label>
+              <input type="text" id="asis-entrenador" placeholder="Nombre del entrenador" readonly style="background:var(--gris-claro); color:var(--gris-oscuro); cursor:default" />
+            </div>
+          </div>
+        </div>
+
+        <div id="asis-resumen" style="display:none; margin-bottom:1rem;">
+          <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr)">
+            <div class="kpi-card verde">
+              <div class="kpi-label">Presentes</div>
+              <div class="kpi-value" id="cnt-presentes">0</div>
+            </div>
+            <div class="kpi-card rojo">
+              <div class="kpi-label">Ausentes</div>
+              <div class="kpi-value" id="cnt-ausentes">0</div>
+            </div>
+            <div class="kpi-card" style="">
+              <div class="kpi-label">Justificados</div>
+              <div class="kpi-value" style="color:var(--amarillo)" id="cnt-justificados">0</div>
+            </div>
+            <div class="kpi-card azul">
+              <div class="kpi-label">Tardanzas</div>
+              <div class="kpi-value" id="cnt-tardanzas">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="asistencia-grid" id="asis-grid">
+          <div class="empty-state" style="grid-column:1/-1">
+            <div class="empty-icon">👥</div>
+            <p>Seleccioná una categoría para ver los atletas</p>
+          </div>
+        </div>
+
+        <div id="asis-actions" style="display:none; margin-top:1.5rem; text-align:right">
+          <button class="btn btn-primary" onclick="guardarAsistencia()">✅ Guardar asistencia</button>
+        </div>
+      </div>
+
+      <!-- ── ATLETAS ── -->
+      <div id="page-atletas" class="page">
+        <div class="page-header">
+          <h2>Atletas</h2>
+          <p>Lista completa de atletas registrados</p>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input type="text" id="filtro-atletas" placeholder="Buscar atleta..." oninput="filtrarAtletas()" />
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>CI</th>
+                  <th>Categoría</th>
+                  <th>Tutor</th>
+                  <th>Contacto</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="atletas-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── USUARIOS ── -->
+      <div id="page-usuarios" class="page">
+        <div class="page-header">
+          <h2>Gestión de usuarios</h2>
+          <p>Administrá los accesos al sistema</p>
+        </div>
+
+        <div class="form-card">
+          <h3 id="usr-form-titulo">➕ Crear nuevo usuario</h3>
+          <input type="hidden" id="usr-modo" value="nuevo" />
+          <input type="hidden" id="usr-index" value="" />
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre completo <span style="color:var(--rojo)">*</span></label>
+              <input type="text" id="usr-nombre" placeholder="Nombre y apellido" />
+            </div>
+            <div class="form-group">
+              <label>CI</label>
+              <input type="text" id="usr-ci" placeholder="Nro de cédula" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Usuario (correo) <span style="color:var(--rojo)">*</span></label>
+              <input type="text" id="usr-email" placeholder="correo@ejemplo.com o usuario temporal" />
+            </div>
+            <div class="form-group">
+              <label>Clave <span style="color:var(--rojo)">*</span></label>
+              <input type="text" id="usr-clave" placeholder="Clave de acceso" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Rol <span style="color:var(--rojo)">*</span></label>
+              <select id="usr-rol">
+                <option value="">— Seleccionar —</option>
+                <option>Entrenador</option>
+                <option>Tesorero</option>
+                <option>Administrador</option>
+                <option>Directivo</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Categorías asignadas</label>
+              <input type="text" id="usr-cats" placeholder="Todas / 2012, 2013 / dejar vacío" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Teléfono / WhatsApp</label>
+            <input type="text" id="usr-tel" placeholder="Ej: 0981123456" />
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-secondary" id="usr-btn-cancelar" onclick="cancelarEdicionUsuario()" style="display:none">Cancelar</button>
+            <button class="btn btn-primary" id="usr-btn-guardar" onclick="guardarUsuario()">➕ Crear usuario</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <span style="font-size:13px; font-weight:600; color:var(--gris-oscuro)">Usuarios del sistema</span>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Usuario / Correo</th>
+                  <th>Clave</th>
+                  <th>Rol</th>
+                  <th>Categorías</th>
+                  <th>Teléfono</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="usuarios-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal confirmar borrar usuario -->
+      <div class="modal-overlay" id="modal-borrar-usuario">
+        <div class="modal" style="max-width:380px">
+          <h3>⚠️ Borrar usuario</h3>
+          <p style="font-size:13px; color:var(--gris-medio); margin-bottom:1.5rem">
+            ¿Confirmás que querés borrar este usuario? Esta acción no se puede deshacer.
+          </p>
+          <div id="borrar-usuario-info" style="background:var(--gris-claro); border-radius:10px; padding:1rem; margin-bottom:1.5rem; font-size:13px"></div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" onclick="cerrarModal('modal-borrar-usuario')">Cancelar</button>
+            <button class="btn btn-danger" onclick="confirmarBorrarUsuario()">🗑 Sí, borrar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CUOTERO ── -->
+      <div id="page-cuotero" class="page">
+        <div class="page-header" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px">
+          <div>
+            <h2>Cuotero</h2>
+            <p>Estado de cuotas por período</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <select id="cuotero-mes" onchange="cargarCuotero()" style="padding:8px 12px; border:1.5px solid #DDD; border-radius:10px; font-size:13px; font-family:inherit">
+              <option value="">— Mes —</option>
+              <option>Enero</option><option>Febrero</option><option>Marzo</option>
+              <option>Abril</option><option>Mayo</option><option>Junio</option>
+              <option>Julio</option><option>Agosto</option><option>Setiembre</option>
+              <option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+            </select>
+            <select id="cuotero-anio" onchange="cargarCuotero()" style="padding:8px 12px; border:1.5px solid #DDD; border-radius:10px; font-size:13px; font-family:inherit">
+              <option>2026</option><option>2027</option><option>2025</option>
+            </select>
+            <button class="btn btn-outline" onclick="cargarCuotero()">🔄 Actualizar</button>
+          </div>
+        </div>
+
+        <!-- KPIs del mes -->
+        <div class="kpi-grid" id="cuotero-kpis" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
+          <div class="kpi-card">
+            <div class="kpi-label">Total atletas</div>
+            <div class="kpi-value" id="cq-total">—</div>
+            <div class="kpi-sub">En el período</div>
+          </div>
+          <div class="kpi-card verde">
+            <div class="kpi-label">Pagados</div>
+            <div class="kpi-value" id="cq-pagados">—</div>
+            <div class="kpi-sub" id="cq-pagados-gs">Gs. 0</div>
+          </div>
+          <div class="kpi-card" style="">
+            <div class="kpi-label">Parciales</div>
+            <div class="kpi-value" style="color:var(--amarillo)" id="cq-parciales">—</div>
+            <div class="kpi-sub" id="cq-parciales-gs">Gs. 0</div>
+          </div>
+          <div class="kpi-card rojo">
+            <div class="kpi-label">Pendientes</div>
+            <div class="kpi-value" id="cq-pendientes">—</div>
+            <div class="kpi-sub" id="cq-pendientes-gs">Gs. 0</div>
+          </div>
+          <div class="kpi-card azul">
+            <div class="kpi-label">Proyectado</div>
+            <div class="kpi-value" id="cq-proyectado">—</div>
+            <div class="kpi-sub">Total esperado</div>
+          </div>
+          <div class="kpi-card verde">
+            <div class="kpi-label">Cobrado</div>
+            <div class="kpi-value" id="cq-cobrado">—</div>
+            <div class="kpi-sub" id="cq-pct">0% del proyectado</div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div style="display:flex; gap:6px; margin-bottom:1rem; flex-wrap:wrap">
+          <button class="btn btn-primary" id="tab-todos" onclick="filtrarCuotero('todos')" style="font-size:12px; padding:7px 14px">Todos</button>
+          <button class="btn btn-secondary" id="tab-pendientes" onclick="filtrarCuotero('PENDIENTE')" style="font-size:12px; padding:7px 14px">🔴 Pendientes</button>
+          <button class="btn btn-secondary" id="tab-parciales" onclick="filtrarCuotero('PARCIAL')" style="font-size:12px; padding:7px 14px">🟡 Parciales</button>
+          <button class="btn btn-secondary" id="tab-pagados" onclick="filtrarCuotero('PAGADO')" style="font-size:12px; padding:7px 14px">🟢 Pagados</button>
+        </div>
+
+        <!-- Tabla cuotero -->
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <input type="text" id="filtro-cuotero" placeholder="Buscar atleta..." oninput="filtrarCuoteroBusqueda()" />
+            <button class="btn btn-secondary" onclick="exportarMorosos()" style="font-size:12px">📋 Lista morosos</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Atleta</th>
+                  <th>Cat.</th>
+                  <th>Total Gs.</th>
+                  <th>Pagado Gs.</th>
+                  <th>Saldo Gs.</th>
+                  <th>Último pago</th>
+                  <th>Recibos</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody id="cuotero-tbody">
+                <tr><td colspan="9">
+                  <div class="empty-state">
+                    <div class="empty-icon">📅</div>
+                    <p>Seleccioná un período para ver el cuotero</p>
+                  </div>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Modal pago parcial -->
+        <div class="modal-overlay" id="modal-pago-cuotero">
+          <div class="modal" style="max-width:420px">
+            <h3>💰 Registrar pago</h3>
+            <div id="pago-cuotero-info" style="background:var(--gris-claro); border-radius:10px; padding:1rem; margin-bottom:1rem; font-size:13px"></div>
+            <div class="form-group">
+              <label>Importe a pagar Gs.</label>
+              <input type="number" id="pago-cuotero-monto" placeholder="Ej: 160000" oninput="validarPagoCuotero()" />
+            </div>
+            <div class="form-group" id="pago-cuotero-confirm-group" style="display:none">
+              <label>Confirmar importe Gs. <span style="color:var(--rojo)">*</span></label>
+              <input type="number" id="pago-cuotero-monto2" placeholder="Reingresá el mismo importe" oninput="validarPagoCuotero()" />
+            </div>
+            <div class="monto-match" id="pago-match">✅ Los importes coinciden</div>
+            <div class="monto-error" id="pago-error">❌ Los importes no coinciden</div>
+            <div class="modal-actions" style="margin-top:1rem">
+              <button class="btn btn-secondary" onclick="cerrarModal('modal-pago-cuotero')">Cancelar</button>
+              <button class="btn btn-primary" onclick="confirmarPagoCuotero()">Confirmar pago →</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     MODAL: CONFIRMACIÓN
+══════════════════════════════ -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal">
+    <h3>Confirmar operación</h3>
+    <div class="confirm-detail" id="confirm-detail"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-confirm')">Cancelar</button>
+      <button class="btn btn-primary" onclick="registrarOperacion()">✅ Confirmar y registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     MODAL: RECIBO
+══════════════════════════════ -->
+<div class="modal-overlay" id="modal-recibo">
+  <div class="modal" style="max-width:520px">
+    <h3>🧾 Recibo generado</h3>
+    <div class="recibo-preview" id="recibo-preview"></div>
+    <div class="recibo-actions">
+      <button class="btn btn-secondary" onclick="imprimirRecibo()">📄 Descargar PDF</button>
+      <button class="btn btn-outline" onclick="copiarWhatsApp()">📋 Copiar para WhatsApp</button>
+      <button class="btn btn-whatsapp" onclick="enviarWhatsApp()">📲 Enviar a WhatsApp</button>
+    </div>
+    <div style="margin-top:1rem; text-align:right">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-recibo')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     MODAL: TUTOR (acceso rápido)
+══════════════════════════════ -->
+<div class="modal-overlay" id="modal-tutor">
+  <div class="modal">
+    <h3>👤 Consulta de estado de cuenta</h3>
+    <p class="text-muted" style="margin-bottom:1rem">Ingresá el CI de tu hijo/a para ver el estado de sus cuotas</p>
+    <div class="form-group">
+      <label>CI del atleta</label>
+      <input type="text" id="tutor-ci" placeholder="Ej: 7086653" />
+    </div>
+    <div id="tutor-resultado" style="display:none; margin-top:1rem"></div>
+    <div class="modal-actions" style="margin-top:1.25rem">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-tutor')">Cerrar</button>
+      <button class="btn btn-primary" onclick="consultarTutor()">Consultar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  DATOS DEL SISTEMA
+// ══════════════════════════════════════════════════════
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbxSq0_kvxazzhalu0xxFmSm3IsXARBNCLFcDLtHD11Lr1BzXbYbbqzMlTM3KjCI60UI/exec';
+
+// ── Función central de comunicación con Google Sheets ──
+async function apiCall(accion, params = {}) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ accion, ...params }),
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    return data.data;
+  } catch(e) {
+    console.error('API Error:', e);
+    throw e;
+  }
+}
+
+// ── Cargar atletas desde Google Sheets ──
+async function cargarAtletasDesdeSheets() {
+  try {
+    const datos = await apiCall('leer', { hoja: 'LISTADO_ALUMNOS' });
+    if (datos && datos.length > 0) {
+      ATLETAS.length = 0;
+      datos.forEach((row, i) => {
+        if (row['NOMBRES Y APELLIDOS']) {
+          ATLETAS.push({
+            id: row['ID'] || 'A' + String(i+1).padStart(3,'0'),
+            ci: String(row['C.I. NRO'] || ''),
+            nombre: row['NOMBRES Y APELLIDOS'] || '',
+            cat: String(row['CATEGORÍA'] || ''),
+            tutor: row['NOMBRE Y APELLIDO TUTOR'] || '',
+            contacto: String(row['NRO CONTACTO'] || ''),
+            estado: row['ESTADO'] || 'ACTIVO',
+          });
+        }
+      });
+      renderAtletas();
+      mostrarNotif('✅ Atletas sincronizados desde Google Sheets (' + ATLETAS.length + ' registros)');
+    }
+  } catch(e) {
+    mostrarNotif('⚠️ Sin conexión a Sheets — usando datos locales', 'warn');
+  }
+}
+
+// ── Cargar operaciones desde Google Sheets ──
+async function cargarOperacionesDesdeSheets() {
+  try {
+    const datos = await apiCall('leer', { hoja: 'INGRESOS_EGRESOS' });
+    if (datos && datos.length > 0) {
+      operaciones.length = 0;
+      datos.forEach((row, i) => {
+        if (row['TIPO OPERACION'] && row['IMPORTE']) {
+          operaciones.push({
+            id: Date.now() + i,
+            fecha: row['FECHA'] || '',
+            tipo: row['TIPO OPERACION'] || '',
+            concepto: row['CONCEPTOS'] || '',
+            ci: String(row['RUC O CI NRO'] || ''),
+            nombre: row['EMPRESA/PROVEEDOR/SOCIO'] || '',
+            nrodoc: row['NRO DE DOCUMENTO'] || '',
+            detalle: row['DETALLE'] || '',
+            monto: parseFloat(String(row['IMPORTE']).replace(/[^0-9.]/g,'')) || 0,
+            periodo: row['PERIODO'] || '',
+            atletaId: row['ID_ATLETA'] || null,
+            atletaNombre: row['ATLETA'] || '',
+            contactoTutor: row['CONTACTO_TUTOR'] || '',
+          });
+        }
+      });
+      actualizarDashboard();
+      renderHistorial();
+      mostrarNotif('✅ Operaciones sincronizadas (' + operaciones.length + ' registros)');
+    }
+  } catch(e) {
+    mostrarNotif('⚠️ No se pudieron cargar operaciones de Sheets', 'warn');
+  }
+}
+
+// ── Guardar operación en Google Sheets ──
+async function guardarOperacionEnSheets(op) {
+  try {
+    await apiCall('escribir', {
+      hoja: 'INGRESOS_EGRESOS',
+      datos: {
+        'FECHA': op.fecha,
+        'TIPO OPERACION': op.tipo,
+        'CONCEPTOS': op.concepto,
+        'RUC O CI NRO': op.ci,
+        'EMPRESA/PROVEEDOR/SOCIO': op.nombre,
+        'NRO DE DOCUMENTO': op.nrodoc,
+        'DETALLE': op.detalle,
+        'IMPORTE': op.monto,
+        'PERIODO': op.periodo,
+        'MES': op.periodo ? op.periodo.split('/')[0] : '',
+        'AÑO': op.periodo ? op.periodo.split('/')[1] : '',
+        'ATLETA': op.atletaNombre,
+        'ID_ATLETA': op.atletaId || '',
+        'CONTACTO_TUTOR': op.contactoTutor || '',
+        'SALDO': '',
+        'USUARIO': usuarioLogueado ? usuarioLogueado.nombre : '',
+      }
+    });
+    return true;
+  } catch(e) {
+    mostrarNotif('⚠️ Error al guardar en Sheets: ' + e.message, 'error');
+    return false;
+  }
+}
+
+// ── Obtener siguiente nro de recibo desde Sheets ──
+async function obtenerNroRecibo() {
+  try {
+    const res = await apiCall('nroRecibo');
+    return res.codigo;
+  } catch(e) {
+    // fallback local
+    return nroReciboStr();
+  }
+}
+
+// ── Verificar duplicado en Sheets ──
+async function verificarDuplicadoSheets(atletaId, concepto, periodo) {
+  try {
+    const res = await apiCall('buscar', {
+      hoja: 'INGRESOS_EGRESOS',
+      columna: 'ID_ATLETA',
+      valor: atletaId
+    });
+    return res.some(r => r['CONCEPTOS'] === concepto && r['PERIODO'] === periodo);
+  } catch(e) {
+    return false;
+  }
+}
+
+// ── Notificación toast ──
+function mostrarNotif(msg, tipo='ok') {
+  let notif = document.getElementById('notif-toast');
+  if (!notif) {
+    notif = document.createElement('div');
+    notif.id = 'notif-toast';
+    notif.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;font-family:inherit;max-width:320px;box-shadow:0 4px 20px rgba(0,0,0,0.2);transition:opacity .3s';
+    document.body.appendChild(notif);
+  }
+  const colores = { ok:'#1E7E34', warn:'#F39C12', error:'#C0392B' };
+  notif.style.background = colores[tipo] || colores.ok;
+  notif.style.color = '#FFF';
+  notif.style.opacity = '1';
+  notif.textContent = msg;
+  clearTimeout(notif._t);
+  notif._t = setTimeout(() => { notif.style.opacity = '0'; }, 4000);
+}
+
+const USUARIOS_SISTEMA = [
+  { nombre: 'Administrador', email: 'admin@yacarebasquet.com', clave: '1234', rol: 'Administrador', estado: 'ACTIVO' },
+  { nombre: 'Tesorero', email: 'tesorero@yacarebasquet.com', clave: '1234', rol: 'Tesorero', estado: 'ACTIVO' },
+];
+
+const ATLETAS = [
+  { id:'A001', ci:'7086653', nombre:'Alan Sebastian Mendoza Olmedo', cat:'2011', tutor:'Erasmo Mendoza González', contacto:'0983777578', estado:'ACTIVO' },
+  { id:'A002', ci:'8143718', nombre:'Aixa Alana Quiñonez Mercado', cat:'2016', tutor:'Jonathan Quiñonez / Aida Mercado', contacto:'0991354193', estado:'ACTIVO' },
+  { id:'A003', ci:'8336802', nombre:'Allison Arianne Tobal Giménez', cat:'2015', tutor:'Emiliano Rafael Tobal Sosa', contacto:'0991203517', estado:'ACTIVO' },
+  { id:'A004', ci:'7928222', nombre:'Abigail Ariadna Barrientos Giménez', cat:'2015', tutor:'Sandra Giménez', contacto:'0981426362', estado:'ACTIVO' },
+  { id:'A005', ci:'7988215', nombre:'Lely Ailén Bobadilla Viveros', cat:'2015', tutor:'Héctor Bobadilla', contacto:'0982055181', estado:'ACTIVO' },
+  { id:'A006', ci:'7737285', nombre:'Marisol Sánchez', cat:'2014', tutor:'Maria Acela Bareiro', contacto:'0976252100', estado:'ACTIVO' },
+  { id:'A007', ci:'8013379', nombre:'Paulina Guadalupe Vega Centurión', cat:'2016', tutor:'Paola Centurión', contacto:'0983240329', estado:'ACTIVO' },
+  { id:'A008', ci:'7459237', nombre:'Gianluca Espinoza Gaona', cat:'2012', tutor:'Nidia Gaona', contacto:'0971301237', estado:'ACTIVO' },
+  { id:'A009', ci:'5754545', nombre:'Andrés González', cat:'2005', tutor:'Andrés González', contacto:'0972806845', estado:'ACTIVO' },
+  { id:'A010', ci:'6943786', nombre:'Fabrizio Arrúa', cat:'2010', tutor:'Karina Colman', contacto:'0971486463', estado:'ACTIVO' },
+  { id:'A011', ci:'7700098', nombre:'Fernando de Jesús Talavera Areco', cat:'2007', tutor:'Prof. Francisca Areco', contacto:'0992748096', estado:'ACTIVO' },
+  { id:'A012', ci:'7663881', nombre:'Evan Ayala', cat:'2010', tutor:'Liz Marlene Medina Gamarra', contacto:'0994663646', estado:'ACTIVO' },
+  { id:'A013', ci:'7089128', nombre:'Mauro Mendoza', cat:'2010', tutor:'Nilsa Estigarribia', contacto:'0982492911', estado:'ACTIVO' },
+  { id:'A014', ci:'8305398', nombre:'Ximena Llamosa', cat:'2017', tutor:'Nahuel Llamosa', contacto:'0986914958', estado:'ACTIVO' },
+  { id:'A015', ci:'7261597', nombre:'Khiara Jalili Chansin Benitez', cat:'2012', tutor:'Alex Chansin', contacto:'0971212170', estado:'ACTIVO' },
+  { id:'A016', ci:'7424060', nombre:'Angelo Ezequiel Ramirez Rodríguez', cat:'2013', tutor:'Lorena Rodríguez', contacto:'0971914864', estado:'ACTIVO' },
+  { id:'A017', ci:'7370445', nombre:'Josué Sebastián Nuñez Zarate', cat:'2012', tutor:'Josué Sebastián Nuñez Zarate', contacto:'0992516458', estado:'ACTIVO' },
+  { id:'A018', ci:'7501445', nombre:'Ivan Francisco Gonzalez Ferreira', cat:'2013', tutor:'Oscar Gonzalez / Lina Ferreira', contacto:'0981231688', estado:'ACTIVO' },
+  { id:'A019', ci:'8332029', nombre:'Liam Benicio Gonzalez Ferreira', cat:'2017', tutor:'Oscar Gonzalez / Lina Ferreira', contacto:'0981231688', estado:'ACTIVO' },
+  { id:'A020', ci:'8470595', nombre:'Mathias Montiel Guillen', cat:'2018', tutor:'Lisette Guillen', contacto:'0991684799', estado:'ACTIVO' },
+  { id:'A021', ci:'6520000', nombre:'Adriano José Yahari Noguera', cat:'2009', tutor:'Sonia Noguera', contacto:'0981442471', estado:'ACTIVO' },
+  { id:'A022', ci:'54352590', nombre:'Frank Eliezer Lugo', cat:'2014', tutor:'Limpia Concepción Lugo Nuñez', contacto:'0981267395', estado:'ACTIVO' },
+  { id:'A023', ci:'7396394', nombre:'Mateo Emmanuel Zarza Arzamendia', cat:'2012', tutor:'Myriam Arzamendia Paredes', contacto:'0981282481', estado:'ACTIVO' },
+  { id:'A024', ci:'8135020', nombre:'Mauricio Martin Romero Leiva', cat:'2016', tutor:'Isabel Leiva / Alfredo Romero', contacto:'0985902491', estado:'ACTIVO' },
+  { id:'A025', ci:'7385842', nombre:'Lucas Arturo Cardozo Salinas', cat:'2013', tutor:'Arturo Cardozo', contacto:'0993275414', estado:'ACTIVO' },
+  { id:'A026', ci:'7778021', nombre:'Marcelo Cáceres', cat:'2013', tutor:'Christian Cáceres', contacto:'0992680690', estado:'ACTIVO' },
+  { id:'A027', ci:'67212947', nombre:'Josué Largosta Britez', cat:'2007', tutor:'Derlis Largosta Sosa', contacto:'0985518489', estado:'ACTIVO' },
+  { id:'A028', ci:'8616968', nombre:'Araceli Largosta Britez', cat:'2012', tutor:'Derlis Largosta Sosa', contacto:'0985518489', estado:'ACTIVO' },
+  { id:'A029', ci:'7911655', nombre:'Tobias Adrian Ortiz Gonzalez', cat:'2012', tutor:'Edith Lucero Gonzalez Vera', contacto:'0986674873', estado:'ACTIVO' },
+  { id:'A030', ci:'9057392', nombre:'Ethan Pablo Rodríguez Tobal', cat:'2018', tutor:'Adela Belén Tobal Sosa', contacto:'0985419261', estado:'ACTIVO' },
+];
+
+const CONCEPTOS_INGRESO = [
+  'Mensualidad','Arancel-Inscripción','Donaciones','Auspicios',
+  'Cantina','Derecho de Partidos','Entrada al Partido','Sponsor','Otros Ingresos'
+];
+
+const CONCEPTOS_EGRESO = [
+  'Pagos a Entrenador','Gtos de Mant. de Cancha','Gtos de Alquiler de Cancha',
+  'Gtos de Infraestructura e Instalaciones','Pagos a Referees','Indumentaria','Otros Gastos Varios'
+];
+
+const CONCEPTOS_CON_ATLETA = ['Mensualidad','Arancel-Inscripción'];
+
+let operaciones = [];
+let usuarios = [...USUARIOS_SISTEMA];
+let nroRecibo = 1;
+let tipoActual = '';
+let atletaSeleccionado = null;
+let reciboActual = null;
+let asistencias = {};
+let usuarioLogueado = null;
+
+// ══════════════════════════════════════════════════════
+//  UTILIDADES
+// ══════════════════════════════════════════════════════
+
+function gs(n) {
+  return 'Gs. ' + Math.round(n).toLocaleString('es-PY');
+}
+
+function fechaHoy() {
+  return new Date().toLocaleDateString('es-PY', { day:'2-digit', month:'2-digit', year:'numeric' });
+}
+
+function nroReciboStr() {
+  return 'REC-' + new Date().getFullYear() + '-' + String(nroRecibo).padStart(4,'0');
+}
+
+function numeroALetras(n) {
+  const unidades = ['','UN','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE',
+    'DIEZ','ONCE','DOCE','TRECE','CATORCE','QUINCE','DIECISÉIS','DIECISIETE','DIECIOCHO','DIECINUEVE'];
+  const decenas = ['','','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+  const centenas = ['','CIEN','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS',
+    'SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+
+  n = Math.round(n);
+  if (n === 0) return 'CERO';
+  if (n < 20) return unidades[n];
+  if (n < 100) return decenas[Math.floor(n/10)] + (n%10 ? ' Y ' + unidades[n%10] : '');
+  if (n < 1000) return centenas[Math.floor(n/100)] + (n%100 ? ' ' + numeroALetras(n%100) : '');
+  if (n < 1000000) {
+    const miles = Math.floor(n/1000);
+    const resto = n % 1000;
+    return (miles === 1 ? 'MIL' : numeroALetras(miles) + ' MIL') + (resto ? ' ' + numeroALetras(resto) : '');
+  }
+  const mill = Math.floor(n/1000000);
+  const resto = n % 1000000;
+  return (mill === 1 ? 'UN MILLÓN' : numeroALetras(mill) + ' MILLONES') + (resto ? ' ' + numeroALetras(resto) : '');
+}
+
+// ══════════════════════════════════════════════════════
+//  LOGIN / LOGOUT
+// ══════════════════════════════════════════════════════
+
+function doLogin() {
+  const email = document.getElementById('login-user').value.trim();
+  const clave = document.getElementById('login-pass').value;
+  const usr = usuarios.find(u => u.email === email && u.clave === clave && u.estado === 'ACTIVO');
+  if (usr) {
+    usuarioLogueado = usr;
+    document.getElementById('login-error').style.display = 'none';
+    document.getElementById('topbar-nombre').textContent = usr.nombre;
+    // Ocultar login completamente
+    const screenLogin = document.getElementById('screen-login');
+    const screenMain  = document.getElementById('screen-main');
+    screenLogin.classList.remove('active');
+    screenLogin.style.display = 'none';
+    screenMain.classList.add('active');
+    screenMain.style.display = 'flex';
+    inicializarApp();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  usuarioLogueado = null;
+  const screenLogin = document.getElementById('screen-login');
+  const screenMain  = document.getElementById('screen-main');
+  screenMain.classList.remove('active');
+  screenMain.style.display = 'none';
+  screenLogin.classList.add('active');
+  screenLogin.style.display = 'flex';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+function showTutorAccess() {
+  document.getElementById('modal-tutor').classList.add('active');
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('screen-login').classList.contains('active')) doLogin();
+});
+
+// ══════════════════════════════════════════════════════
+//  INICIALIZAR APP
+// ══════════════════════════════════════════════════════
+
+function inicializarApp() {
+  document.getElementById('fecha-hoy').textContent = fechaHoy();
+  document.getElementById('op-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('asis-fecha').value = new Date().toISOString().split('T')[0];
+
+  // Autocompletar nombre del entrenador con usuario logueado
+  if (usuarioLogueado) {
+    document.getElementById('asis-entrenador').value = usuarioLogueado.nombre;
+    // Si es entrenador con categorías asignadas, preseleccionar
+    if (usuarioLogueado.rol === 'Entrenador' && usuarioLogueado.cats) {
+      const cats = usuarioLogueado.cats.split(',').map(c => c.trim());
+      if (cats.length === 1 && cats[0] !== 'Todas') {
+        document.getElementById('asis-categoria').value = cats[0];
+        cargarAtletasAsistencia();
+      }
+    }
+  }
+
+  renderAtletas();
+  renderUsuarios();
+  actualizarDashboard();
+
+  // Sincronizar con Google Sheets
+  mostrarNotif('🔄 Conectando con Google Sheets...');
+  cargarAtletasDesdeSheets();
+  cargarOperacionesDesdeSheets();
+}
+
+// ══════════════════════════════════════════════════════
+//  NAVEGACIÓN
+// ══════════════════════════════════════════════════════
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+
+  // Al entrar a asistencia — autocompletar entrenador
+  if (id === 'asistencia' && usuarioLogueado) {
+    document.getElementById('asis-entrenador').value = usuarioLogueado.nombre;
+    // Si el entrenador tiene una sola categoría asignada, cargarla automáticamente
+    if (usuarioLogueado.rol === 'Entrenador' && usuarioLogueado.cats &&
+        usuarioLogueado.cats !== 'Todas') {
+      const cats = usuarioLogueado.cats.split(',').map(c => c.trim());
+      if (cats.length === 1) {
+        document.getElementById('asis-categoria').value = cats[0];
+        cargarAtletasAsistencia();
+      }
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  FORMULARIO OPERACIONES
+// ══════════════════════════════════════════════════════
+
+function setTipo(tipo) {
+  tipoActual = tipo;
+  document.getElementById('btn-ingreso').className = 'tipo-btn' + (tipo==='INGRESO' ? ' selected-ingreso' : '');
+  document.getElementById('btn-egreso').className = 'tipo-btn' + (tipo==='EGRESO' ? ' selected-egreso' : '');
+
+  const sel = document.getElementById('op-concepto');
+  sel.innerHTML = '<option value="">— Seleccionar —</option>';
+  const conceptos = tipo === 'INGRESO' ? CONCEPTOS_INGRESO : CONCEPTOS_EGRESO;
+  conceptos.forEach(c => { const o = document.createElement('option'); o.textContent = c; sel.appendChild(o); });
+
+  // Nro documento
+  const inp = document.getElementById('op-nrodoc');
+  const lbl = document.getElementById('label-nrodoc');
+  if (tipo === 'INGRESO') {
+    inp.value = nroReciboStr();
+    inp.readOnly = true;
+    lbl.textContent = 'Nro de recibo (automático)';
+  } else {
+    inp.value = '';
+    inp.readOnly = false;
+    lbl.textContent = 'Nro de documento del proveedor *';
+  }
+
+  // Validación doble monto
+  document.getElementById('monto-validation').style.display = tipo ? 'block' : 'none';
+  document.getElementById('op-monto2').value = '';
+  document.getElementById('monto-match').style.display = 'none';
+  document.getElementById('monto-error').style.display = 'none';
+
+  onConceptoChange();
+}
+
+function onConceptoChange() {
+  const concepto = document.getElementById('op-concepto').value;
+  const conAtleta = tipoActual === 'INGRESO' && CONCEPTOS_CON_ATLETA.includes(concepto);
+  document.getElementById('bloque-atleta').style.display = conAtleta ? 'block' : 'none';
+  document.getElementById('bloque-proveedor').style.display = 'block';
+  if (conAtleta) {
+    document.getElementById('atleta-search').value = '';
+    document.getElementById('atleta-selected').style.display = 'none';
+    atletaSeleccionado = null;
+  }
+}
+
+function buscarAtleta() {
+  const q = document.getElementById('atleta-search').value.toLowerCase();
+  const res = document.getElementById('search-results');
+  if (q.length < 2) { res.style.display = 'none'; return; }
+  const found = ATLETAS.filter(a =>
+    a.nombre.toLowerCase().includes(q) || a.ci.includes(q)
+  ).slice(0, 6);
+  if (!found.length) { res.style.display = 'none'; return; }
+  res.innerHTML = found.map(a => `
+    <div class="search-result-item" onclick="seleccionarAtleta('${a.id}')">
+      <div class="atleta-name">${a.nombre}</div>
+      <div class="atleta-meta">CI: ${a.ci} · Cat. ${a.cat} · Tutor: ${a.tutor}</div>
+    </div>`).join('');
+  res.style.display = 'block';
+}
+
+function seleccionarAtleta(id) {
+  atletaSeleccionado = ATLETAS.find(a => a.id === id);
+  document.getElementById('atleta-search').value = atletaSeleccionado.nombre;
+  document.getElementById('search-results').style.display = 'none';
+  document.getElementById('atleta-selected').style.display = 'block';
+  document.getElementById('atleta-selected-nombre').textContent = atletaSeleccionado.nombre;
+  document.getElementById('atleta-selected-detail').textContent =
+    `CI: ${atletaSeleccionado.ci} · Categoría ${atletaSeleccionado.cat} · Tutor: ${atletaSeleccionado.tutor} · ${atletaSeleccionado.contacto}`;
+  // Autocompletar proveedor
+  document.getElementById('op-ci').value = atletaSeleccionado.ci;
+  document.getElementById('op-nombre').value = atletaSeleccionado.tutor;
+  verificarDuplicado();
+  // También verificar en Sheets
+  const mes = document.getElementById('op-mes').value;
+  const anio = document.getElementById('op-anio').value;
+  const concepto = document.getElementById('op-concepto').value;
+  if (mes && anio && atletaSeleccionado) {
+    verificarDuplicadoSheets(atletaSeleccionado.id, concepto, mes+'/'+anio).then(existe => {
+      if (existe) document.getElementById('duplicado-alert').style.display = 'block';
+    });
+  }
+}
+
+function verificarDuplicado() {
+  if (!atletaSeleccionado) return;
+  const mes = document.getElementById('op-mes').value;
+  const anio = document.getElementById('op-anio').value;
+  const concepto = document.getElementById('op-concepto').value;
+  if (!mes || !anio) return;
+  const periodo = mes + '/' + anio;
+  const existe = operaciones.find(o =>
+    o.atletaId === atletaSeleccionado.id &&
+    o.periodo === periodo &&
+    o.concepto === concepto
+  );
+  document.getElementById('duplicado-alert').style.display = existe ? 'block' : 'none';
+}
+
+function validarMontos() {
+  const m1 = parseFloat(document.getElementById('op-monto').value) || 0;
+  const m2 = parseFloat(document.getElementById('op-monto2').value) || 0;
+  const match = document.getElementById('monto-match');
+  const err = document.getElementById('monto-error');
+  if (!m1 || !m2) { match.style.display='none'; err.style.display='none'; return; }
+  if (m1 === m2) { match.style.display='block'; err.style.display='none'; }
+  else { match.style.display='none'; err.style.display='block'; }
+}
+
+function abrirConfirmacion() {
+  const tipo = tipoActual;
+  const concepto = document.getElementById('op-concepto').value;
+  const monto = parseFloat(document.getElementById('op-monto').value) || 0;
+  const monto2 = parseFloat(document.getElementById('op-monto2').value) || 0;
+  const fecha = document.getElementById('op-fecha').value;
+  const nombre = document.getElementById('op-nombre').value;
+  const detalle = document.getElementById('op-detalle').value;
+  const nrodoc = document.getElementById('op-nrodoc').value;
+
+  if (!tipo) return alert('Seleccioná el tipo de operación');
+  if (!concepto) return alert('Seleccioná un concepto');
+  if (!monto) return alert('Ingresá el importe');
+  if (monto !== monto2) return alert('Los importes no coinciden. Verificá el monto.');
+  if (!fecha) return alert('Seleccioná la fecha');
+  if (!nombre) return alert('Ingresá el nombre del proveedor / pagador');
+  if (tipo === 'EGRESO' && !nrodoc) return alert('Ingresá el Nro de documento del proveedor');
+
+  const mes = document.getElementById('op-mes').value;
+  const anio = document.getElementById('op-anio').value;
+  const periodo = mes && anio ? mes + '/' + anio : '—';
+
+  document.getElementById('confirm-detail').innerHTML = `
+    <div class="confirm-row">
+      <span class="label">Tipo</span>
+      <span class="value"><span class="badge ${tipo==='INGRESO'?'badge-ingreso':'badge-egreso'}">${tipo}</span></span>
+    </div>
+    <div class="confirm-row">
+      <span class="label">Fecha</span>
+      <span class="value">${fecha}</span>
+    </div>
+    <div class="confirm-row">
+      <span class="label">Concepto</span>
+      <span class="value">${concepto}</span>
+    </div>
+    <div class="confirm-row">
+      <span class="label">Nombre</span>
+      <span class="value">${nombre}</span>
+    </div>
+    ${periodo !== '—' ? `<div class="confirm-row"><span class="label">Período</span><span class="value">${periodo}</span></div>` : ''}
+    ${detalle ? `<div class="confirm-row"><span class="label">Detalle</span><span class="value">${detalle}</span></div>` : ''}
+    <div class="confirm-row">
+      <span class="label">Nro documento</span>
+      <span class="value">${nrodoc || '—'}</span>
+    </div>
+    <div class="confirm-row total">
+      <span class="label">IMPORTE</span>
+      <span class="value">${gs(monto)}</span>
+    </div>
+  `;
+  document.getElementById('modal-confirm').classList.add('active');
+}
+
+function registrarOperacion() {
+  const tipo = tipoActual;
+  const concepto = document.getElementById('op-concepto').value;
+  const monto = parseFloat(document.getElementById('op-monto').value);
+  const fecha = document.getElementById('op-fecha').value;
+  const ci = document.getElementById('op-ci').value;
+  const nombre = document.getElementById('op-nombre').value;
+  const nrodoc = document.getElementById('op-nrodoc').value;
+  const detalle = document.getElementById('op-detalle').value;
+  const mes = document.getElementById('op-mes').value;
+  const anio = document.getElementById('op-anio').value;
+  const periodo = mes && anio ? mes + '/' + anio : '';
+
+  const op = {
+    id: Date.now(),
+    fecha, tipo, concepto, ci, nombre, nrodoc, detalle,
+    monto, periodo,
+    atletaId: atletaSeleccionado ? atletaSeleccionado.id : null,
+    atletaNombre: atletaSeleccionado ? atletaSeleccionado.nombre : '',
+    contactoTutor: atletaSeleccionado ? atletaSeleccionado.contacto : '',
+  };
+
+  operaciones.unshift(op);
+  cerrarModal('modal-confirm');
+
+  // Guardar en Google Sheets
+  guardarOperacionEnSheets(op).then(guardado => {
+    if (guardado) mostrarNotif('✅ Operación guardada en Google Sheets');
+  });
+
+  if (tipo === 'INGRESO') {
+    nroRecibo++;
+    generarRecibo(op);
+  } else {
+    limpiarFormulario();
+    actualizarDashboard();
+    renderHistorial();
+    mostrarNotif('✅ Egreso registrado — Nro documento: ' + nrodoc);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  RECIBO
+// ══════════════════════════════════════════════════════
+
+function generarRecibo(op) {
+  reciboActual = op;
+  const letras = numeroALetras(op.monto) + ' GUARANÍES';
+  const esParcial = false; // En futuras versiones se detecta pago parcial
+
+  const html = `
+    <div class="recibo-header">
+      <div class="club-name">🏀 CLUB YACARÉ BÁSQUET</div>
+      <div class="club-sub">Academia de básquetbol — Itá, Paraguay</div>
+      <div class="club-sub">yacareitabasquet@gmail.com</div>
+    </div>
+    <div class="recibo-nro">RECIBO ${op.nrodoc}</div>
+    <div class="recibo-line"><span class="r-label">Fecha:</span><span class="r-value">${op.fecha}</span></div>
+    <div class="recibo-line"><span class="r-label">CI / RUC:</span><span class="r-value">${op.ci || '—'}</span></div>
+    <div class="recibo-line"><span class="r-label">Recibí de:</span><span class="r-value">${op.nombre}</span></div>
+    ${op.atletaNombre ? `<div class="recibo-line"><span class="r-label">Atleta:</span><span class="r-value">${op.atletaNombre}</span></div>` : ''}
+    <div class="recibo-line"><span class="r-label">Concepto:</span><span class="r-value">${op.concepto}</span></div>
+    ${op.periodo ? `<div class="recibo-line"><span class="r-label">Período:</span><span class="r-value">${op.periodo}</span></div>` : ''}
+    ${op.detalle ? `<div class="recibo-line"><span class="r-label">Detalle:</span><span class="r-value">${op.detalle}</span></div>` : ''}
+    <div class="recibo-monto">
+      <div class="monto-gs">${gs(op.monto)}</div>
+      <div class="monto-letras">Son: ${letras}</div>
+    </div>
+    ${esParcial ? `<div class="recibo-parcial">⚠️ PAGO PARCIAL — Saldo pendiente: ${gs(0)}</div>` : ''}
+    <div class="recibo-firma">
+      <div><div style="height:30px"></div><div class="firma-box">Firma del pagador</div></div>
+      <div><div style="height:30px"></div><div class="firma-box">Sello y firma del club</div></div>
+    </div>
+    <div class="recibo-copia">
+      <div style="text-align:center; font-size:10px; color:#999; font-family:sans-serif; margin-bottom:8px">✂ ─ ─ ─ ─ ─ COPIA ─ ─ ─ ─ ─ ✂</div>
+      <div class="recibo-nro" style="font-size:12px">${op.nrodoc} — COPIA</div>
+      <div class="recibo-line"><span class="r-label">Fecha:</span><span class="r-value">${op.fecha}</span></div>
+      <div class="recibo-line"><span class="r-label">Recibí de:</span><span class="r-value">${op.nombre}</span></div>
+      ${op.atletaNombre ? `<div class="recibo-line"><span class="r-label">Atleta:</span><span class="r-value">${op.atletaNombre}</span></div>` : ''}
+      <div class="recibo-line"><span class="r-label">Concepto:</span><span class="r-value">${op.concepto}${op.periodo ? ' — ' + op.periodo : ''}</span></div>
+      <div class="recibo-monto" style="padding:8px">
+        <div class="monto-gs" style="font-size:16px">${gs(op.monto)}</div>
+      </div>
+    </div>`;
+
+  document.getElementById('recibo-preview').innerHTML = html;
+  document.getElementById('modal-recibo').classList.add('active');
+  limpiarFormulario();
+  actualizarDashboard();
+  renderHistorial();
+}
+
+function copiarWhatsApp() {
+  if (!reciboActual) return;
+  const op = reciboActual;
+  const txt = `🏀 *CLUB YACARÉ BÁSQUET*\n━━━━━━━━━━━━━━━━━━━━\n✅ *RECIBO ${op.nrodoc}*\n📅 Fecha: ${op.fecha}\n👤 Pagador: ${op.nombre}${op.atletaNombre ? '\n🏃 Atleta: ' + op.atletaNombre : ''}\n📋 Concepto: ${op.concepto}${op.periodo ? '\n📆 Período: ' + op.periodo : ''}\n💰 Importe: *${gs(op.monto)}*\n━━━━━━━━━━━━━━━━━━━━\n_Son: ${numeroALetras(op.monto)} GUARANÍES_\n\nGracias por su pago 🙏`;
+  navigator.clipboard.writeText(txt).then(() => alert('✅ ¡Copiado! Ya podés pegarlo en WhatsApp'));
+}
+
+function enviarWhatsApp() {
+  if (!reciboActual) return;
+  const op = reciboActual;
+  const contacto = op.contactoTutor.replace(/\D/g,'');
+  const numero = contacto.startsWith('595') ? contacto : '595' + contacto.replace(/^0/,'');
+  const txt = encodeURIComponent(`🏀 *CLUB YACARÉ BÁSQUET*\n✅ *RECIBO ${op.nrodoc}*\nFecha: ${op.fecha}\n${op.atletaNombre ? 'Atleta: ' + op.atletaNombre + '\n' : ''}Concepto: ${op.concepto}${op.periodo ? ' — ' + op.periodo : ''}\n💰 *${gs(op.monto)}*\nGracias por su pago 🙏`);
+  window.open(`https://wa.me/${numero}?text=${txt}`, '_blank');
+}
+
+function imprimirRecibo() {
+  if (!window.jspdf) { window.print(); return; }
+  const op = reciboActual;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a5' });
+  try {
+    const logoImg = 'data:image/png;base64,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';
+    doc.addImage(logoImg, 'PNG', 62, 5, 24, 24);
+  } catch(e) {}
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(14);
+  doc.text('CLUB YACARÉ BÁSQUET', 74, 33, { align:'center' });
+  doc.setFont('helvetica','italic');
+  doc.setFontSize(8);
+  doc.setTextColor(232,119,34);
+  doc.text('Garra, Disciplina y Corazón', 74, 38, { align:'center' });
+  doc.setTextColor(0,0,0);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(9);
+  doc.text('Academia de básquetbol — Itá, Paraguay', 74, 43, { align:'center' });
+  doc.setDrawColor(232,119,34);
+  doc.setLineWidth(0.5);
+  doc.line(10, 47, 138, 47);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(12);
+  doc.text('RECIBO ' + op.nrodoc, 74, 55, { align:'center' });
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(10);
+  const rows = [
+    ['Fecha:', op.fecha],
+    ['CI / RUC:', op.ci || '—'],
+    ['Recibí de:', op.nombre],
+    op.atletaNombre ? ['Atleta:', op.atletaNombre] : null,
+    ['Concepto:', op.concepto],
+    op.periodo ? ['Período:', op.periodo] : null,
+    op.detalle ? ['Detalle:', op.detalle] : null,
+  ].filter(Boolean);
+  let y = 63;
+  rows.forEach(([l, v]) => {
+    doc.setFont('helvetica','bold'); doc.text(l, 12, y);
+    doc.setFont('helvetica','normal'); doc.text(v, 45, y);
+    y += 7;
+  });
+  doc.setFillColor(253,233,212);
+  doc.roundedRect(10, y, 128, 20, 3, 3, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(14);
+  doc.setTextColor(232,119,34);
+  doc.text(gs(op.monto), 74, y+8, { align:'center' });
+  doc.setFontSize(8);
+  doc.setTextColor(80,80,80);
+  doc.text('Son: ' + numeroALetras(op.monto) + ' GUARANÍES', 74, y+14, { align:'center' });
+  doc.setTextColor(0,0,0);
+  y += 26;
+  doc.setDrawColor(200,200,200);
+  doc.setLineDash([2,2]);
+  doc.line(10, y+30, 138, y+30);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8);
+  doc.text('Firma del pagador', 35, y+46, { align:'center' });
+  doc.text('Sello y firma del club', 104, y+46, { align:'center' });
+  doc.save('Recibo_' + op.nrodoc + '.pdf');
+}
+
+// ══════════════════════════════════════════════════════
+//  HISTORIAL
+// ══════════════════════════════════════════════════════
+
+function renderHistorial(filtro='') {
+  const tbody = document.getElementById('historial-tbody');
+  let ops = operaciones;
+  if (filtro) {
+    const q = filtro.toLowerCase();
+    ops = ops.filter(o =>
+      o.nombre.toLowerCase().includes(q) ||
+      o.concepto.toLowerCase().includes(q) ||
+      o.nrodoc.toLowerCase().includes(q) ||
+      (o.atletaNombre && o.atletaNombre.toLowerCase().includes(q))
+    );
+  }
+  if (!ops.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">📋</div><p>Sin resultados</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = ops.map(o => `
+    <tr>
+      <td>${o.fecha}</td>
+      <td><span class="badge ${o.tipo==='INGRESO'?'badge-ingreso':'badge-egreso'}">${o.tipo}</span></td>
+      <td>${o.concepto}</td>
+      <td>${o.atletaNombre || o.nombre}</td>
+      <td>${o.periodo || '—'}</td>
+      <td style="font-weight:600; color:${o.tipo==='INGRESO'?'var(--verde)':'var(--rojo)'}">${gs(o.monto)}</td>
+      <td style="font-size:12px">${o.nrodoc || '—'}</td>
+      <td>${o.tipo==='INGRESO' ? `<button class="btn btn-secondary" style="padding:4px 10px; font-size:12px" onclick="reimprimir(${o.id})">🧾 Recibo</button>` : '—'}</td>
+    </tr>`).join('');
+}
+
+function filtrarHistorial() {
+  renderHistorial(document.getElementById('filtro-historial').value);
+}
+
+function reimprimir(id) {
+  reciboActual = operaciones.find(o => o.id === id);
+  if (reciboActual) generarRecibo(reciboActual);
+}
+
+// ══════════════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════════════
+
+function actualizarDashboard() {
+  const hoy = new Date();
+  const mesActual = hoy.getMonth();
+  const anioActual = hoy.getFullYear();
+
+  const opsMes = operaciones.filter(o => {
+    const f = new Date(o.fecha);
+    return f.getMonth() === mesActual && f.getFullYear() === anioActual;
+  });
+
+  const ingresos = opsMes.filter(o => o.tipo === 'INGRESO').reduce((s,o) => s+o.monto, 0);
+  const egresos = opsMes.filter(o => o.tipo === 'EGRESO').reduce((s,o) => s+o.monto, 0);
+  const saldoTotal = operaciones.filter(o=>o.tipo==='INGRESO').reduce((s,o)=>s+o.monto,0)
+                   - operaciones.filter(o=>o.tipo==='EGRESO').reduce((s,o)=>s+o.monto,0);
+  const recibosEmititosMes = opsMes.filter(o=>o.tipo==='INGRESO').length;
+
+  document.getElementById('kpi-ingresos').textContent = gs(ingresos);
+  document.getElementById('kpi-ingresos-sub').textContent = opsMes.filter(o=>o.tipo==='INGRESO').length + ' operaciones';
+  document.getElementById('kpi-egresos').textContent = gs(egresos);
+  document.getElementById('kpi-egresos-sub').textContent = opsMes.filter(o=>o.tipo==='EGRESO').length + ' operaciones';
+  document.getElementById('kpi-saldo').textContent = gs(saldoTotal);
+  document.getElementById('kpi-recibos').textContent = recibosEmititosMes;
+  document.getElementById('kpi-prox-recibo').textContent = nroReciboStr();
+
+  // Últimas ops
+  const ul = document.getElementById('ultimas-ops');
+  if (!operaciones.length) {
+    ul.innerHTML = `<div class="empty-state"><div class="empty-icon">💼</div><p>Sin operaciones aún</p></div>`;
+    return;
+  }
+  ul.innerHTML = `<table style="width:100%"><thead><tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Nombre</th><th>Importe</th></tr></thead><tbody>
+    ${operaciones.slice(0,5).map(o=>`<tr>
+      <td>${o.fecha}</td>
+      <td><span class="badge ${o.tipo==='INGRESO'?'badge-ingreso':'badge-egreso'}">${o.tipo}</span></td>
+      <td>${o.concepto}</td>
+      <td>${o.atletaNombre||o.nombre}</td>
+      <td style="font-weight:600;color:${o.tipo==='INGRESO'?'var(--verde)':'var(--rojo)'}">${gs(o.monto)}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  ESTADO DE CUENTA
+// ══════════════════════════════════════════════════════
+
+function buscarCuenta() {
+  const q = document.getElementById('cuenta-search').value.toLowerCase();
+  const res = document.getElementById('cuenta-results');
+  if (q.length < 2) { res.style.display='none'; return; }
+  const found = ATLETAS.filter(a => a.nombre.toLowerCase().includes(q) || a.ci.includes(q)).slice(0,5);
+  if (!found.length) { res.style.display='none'; return; }
+  res.innerHTML = found.map(a => `
+    <div class="search-result-item" onclick="verCuenta('${a.id}')">
+      <div class="atleta-name">${a.nombre}</div>
+      <div class="atleta-meta">CI: ${a.ci} · Cat. ${a.cat}</div>
+    </div>`).join('');
+  res.style.display = 'block';
+}
+
+function verCuenta(id) {
+  const atleta = ATLETAS.find(a => a.id === id);
+  document.getElementById('cuenta-search').value = atleta.nombre;
+  document.getElementById('cuenta-results').style.display = 'none';
+
+  const ops = operaciones.filter(o => o.atletaId === id);
+  const totalPagado = ops.reduce((s,o) => s+o.monto, 0);
+  const ultimoPago = ops.length ? ops[0].fecha : '—';
+
+  const ini = atleta.nombre.split(' ').map(n=>n[0]).slice(0,2).join('');
+  document.getElementById('cuenta-avatar').textContent = ini;
+  document.getElementById('cuenta-nombre').textContent = atleta.nombre;
+  document.getElementById('cuenta-meta').textContent = `CI: ${atleta.ci} · Categoría ${atleta.cat} · Tutor: ${atleta.tutor}`;
+  document.getElementById('cuenta-total-pagado').textContent = gs(totalPagado);
+  document.getElementById('cuenta-saldo').textContent = gs(0);
+  document.getElementById('cuenta-ultimo-pago').textContent = ultimoPago;
+
+  const tbody = document.getElementById('cuenta-tbody');
+  if (!ops.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:1rem; color:var(--gris-medio)">Sin pagos registrados</td></tr>`;
+  } else {
+    tbody.innerHTML = ops.map(o => `
+      <tr>
+        <td>${o.periodo || '—'}</td>
+        <td>${o.concepto}</td>
+        <td>${gs(160000)}</td>
+        <td style="color:var(--verde); font-weight:600">${gs(o.monto)}</td>
+        <td>${gs(Math.max(0, 160000 - o.monto))}</td>
+        <td><span class="badge ${o.monto>=160000?'badge-pagado':'badge-parcial'}">${o.monto>=160000?'PAGADO':'PARCIAL'}</span></td>
+      </tr>`).join('');
+  }
+  document.getElementById('cuenta-card').style.display = 'block';
+}
+
+function consultarTutor() {
+  const ci = document.getElementById('tutor-ci').value.trim();
+  const atleta = ATLETAS.find(a => a.ci === ci);
+  const res = document.getElementById('tutor-resultado');
+  if (!atleta) {
+    res.style.display = 'block';
+    res.innerHTML = `<div class="monto-error" style="display:block">No se encontró ningún atleta con ese CI</div>`;
+    return;
+  }
+  const ops = operaciones.filter(o => o.atletaId === atleta.id);
+  const totalPagado = ops.reduce((s,o)=>s+o.monto,0);
+  res.style.display = 'block';
+  res.innerHTML = `
+    <div style="background:var(--gris-claro); border-radius:var(--radio); padding:1rem">
+      <div style="font-size:15px; font-weight:700; margin-bottom:.5rem">${atleta.nombre}</div>
+      <div style="font-size:12px; color:var(--gris-medio)">Categoría ${atleta.cat}</div>
+      <hr style="margin:.75rem 0; border-color:#DDD">
+      <div style="display:flex; justify-content:space-between; font-size:13px">
+        <span>Total pagado:</span><span style="font-weight:700; color:var(--verde)">${gs(totalPagado)}</span>
+      </div>
+      ${ops.length ? ops.slice(0,3).map(o=>`
+        <div style="display:flex; justify-content:space-between; font-size:12px; margin-top:6px; color:var(--gris-oscuro)">
+          <span>${o.concepto} ${o.periodo?'— '+o.periodo:''}</span>
+          <span style="color:var(--verde)">${gs(o.monto)}</span>
+        </div>`).join('') : '<p style="font-size:12px; color:var(--gris-medio); margin-top:.5rem">Sin pagos registrados</p>'}
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+//  ASISTENCIA
+// ══════════════════════════════════════════════════════
+
+function cargarAtletasAsistencia() {
+  const cat = document.getElementById('asis-categoria').value;
+  const grid = document.getElementById('asis-grid');
+  const resumen = document.getElementById('asis-resumen');
+  const actions = document.getElementById('asis-actions');
+
+  if (!cat) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">👥</div><p>Seleccioná una categoría</p></div>`;
+    resumen.style.display = 'none';
+    actions.style.display = 'none';
+    return;
+  }
+
+  const atletas = ATLETAS.filter(a => a.cat === cat && a.estado === 'ACTIVO');
+  if (!atletas.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><p>Sin atletas en esta categoría</p></div>`;
+    return;
+  }
+
+  asistencias = {};
+  atletas.forEach(a => asistencias[a.id] = null);
+  resumen.style.display = 'block';
+  actions.style.display = 'block';
+  actualizarContadores();
+
+  grid.innerHTML = atletas.map(a => `
+    <div class="asistencia-card" id="card-${a.id}">
+      <div>
+        <div class="a-name">${a.nombre.split(' ').slice(0,2).join(' ')}</div>
+        <div class="a-meta">Cat. ${a.cat}</div>
+      </div>
+      <div class="a-btns">
+        <button class="a-btn presente" title="Presente" onclick="setAsistencia('${a.id}','presente')">✅</button>
+        <button class="a-btn ausente" title="Ausente" onclick="setAsistencia('${a.id}','ausente')">❌</button>
+        <button class="a-btn justificado" title="Justificado" onclick="setAsistencia('${a.id}','justificado')">⚠️</button>
+        <button class="a-btn tardanza" title="Tardanza" onclick="setAsistencia('${a.id}','tardanza')">🕐</button>
+      </div>
+    </div>`).join('');
+}
+
+function setAsistencia(id, estado) {
+  asistencias[id] = estado;
+  const card = document.getElementById('card-' + id);
+  card.className = 'asistencia-card estado-' + estado;
+  actualizarContadores();
+}
+
+function actualizarContadores() {
+  const vals = Object.values(asistencias);
+  document.getElementById('cnt-presentes').textContent = vals.filter(v=>v==='presente').length;
+  document.getElementById('cnt-ausentes').textContent = vals.filter(v=>v==='ausente').length;
+  document.getElementById('cnt-justificados').textContent = vals.filter(v=>v==='justificado').length;
+  document.getElementById('cnt-tardanzas').textContent = vals.filter(v=>v==='tardanza').length;
+}
+
+function guardarAsistencia() {
+  const total = Object.keys(asistencias).length;
+  const marcados = Object.values(asistencias).filter(v=>v!==null).length;
+  if (marcados < total) {
+    if (!confirm(`Hay ${total-marcados} atletas sin marcar. ¿Guardás igual?`)) return;
+  }
+  const presentes = Object.values(asistencias).filter(v=>v==='presente').length;
+  alert(`✅ Asistencia guardada\n\nPresentes: ${presentes}/${total}\nFecha: ${document.getElementById('asis-fecha').value}`);
+}
+
+// ══════════════════════════════════════════════════════
+//  ATLETAS
+// ══════════════════════════════════════════════════════
+
+function renderAtletas(filtro='') {
+  const tbody = document.getElementById('atletas-tbody');
+  let lista = ATLETAS;
+  if (filtro) {
+    const q = filtro.toLowerCase();
+    lista = lista.filter(a => a.nombre.toLowerCase().includes(q) || a.ci.includes(q) || a.cat.includes(q));
+  }
+  tbody.innerHTML = lista.map(a => `
+    <tr>
+      <td style="font-weight:500">${a.nombre}</td>
+      <td>${a.ci}</td>
+      <td><span class="tag" style="background:var(--naranja-light); color:var(--naranja-dark)">${a.cat}</span></td>
+      <td>${a.tutor}</td>
+      <td>${a.contacto}</td>
+      <td><span class="badge badge-pagado">${a.estado}</span></td>
+    </tr>`).join('');
+}
+
+function filtrarAtletas() {
+  renderAtletas(document.getElementById('filtro-atletas').value);
+}
+
+// ══════════════════════════════════════════════════════
+//  USUARIOS
+// ══════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════
+//  GESTIÓN DE USUARIOS
+// ══════════════════════════════════════════════════════
+
+let usuarioABorrar = null;
+
+function guardarUsuario() {
+  const modo   = document.getElementById('usr-modo').value;
+  const nombre = document.getElementById('usr-nombre').value.trim();
+  const ci     = document.getElementById('usr-ci').value.trim();
+  const email  = document.getElementById('usr-email').value.trim();
+  const clave  = document.getElementById('usr-clave').value.trim();
+  const rol    = document.getElementById('usr-rol').value;
+  const cats   = document.getElementById('usr-cats').value.trim();
+  const tel    = document.getElementById('usr-tel').value.trim();
+
+  if (!nombre) return alert('El nombre es obligatorio');
+  if (!email)  return alert('El usuario o correo es obligatorio');
+  if (!clave)  return alert('La clave es obligatoria');
+  if (!rol)    return alert('Seleccioná un rol');
+
+  if (modo === 'nuevo') {
+    // Verificar duplicado de email
+    if (usuarios.find(u => u.email === email)) {
+      return alert('Ya existe un usuario con ese correo o usuario');
+    }
+    usuarios.push({ nombre, ci, email, clave, rol, cats, tel, estado:'ACTIVO' });
+    mostrarNotif('✅ Usuario creado correctamente');
+  } else {
+    // Editar existente
+    const idx = parseInt(document.getElementById('usr-index').value);
+    const emailAnterior = usuarios[idx].email;
+    // Verificar duplicado solo si cambió el email
+    if (email !== emailAnterior && usuarios.find(u => u.email === email)) {
+      return alert('Ya existe otro usuario con ese correo o usuario');
+    }
+    usuarios[idx] = { ...usuarios[idx], nombre, ci, email, clave, rol, cats, tel };
+    mostrarNotif('✅ Usuario actualizado correctamente');
+  }
+
+  limpiarFormUsuario();
+  renderUsuarios();
+}
+
+function editarUsuario(i) {
+  const u = usuarios[i];
+  document.getElementById('usr-modo').value        = 'editar';
+  document.getElementById('usr-index').value       = i;
+  document.getElementById('usr-nombre').value      = u.nombre || '';
+  document.getElementById('usr-ci').value          = u.ci || '';
+  document.getElementById('usr-email').value       = u.email || '';
+  document.getElementById('usr-clave').value       = u.clave || '';
+  document.getElementById('usr-rol').value         = u.rol || '';
+  document.getElementById('usr-cats').value        = u.cats || '';
+  document.getElementById('usr-tel').value         = u.tel || '';
+  document.getElementById('usr-form-titulo').textContent = '✏️ Editar usuario — ' + u.nombre;
+  document.getElementById('usr-btn-guardar').textContent = '💾 Guardar cambios';
+  document.getElementById('usr-btn-cancelar').style.display = 'inline-flex';
+  // Scroll al formulario
+  document.getElementById('usr-form-titulo').scrollIntoView({ behavior:'smooth' });
+}
+
+function cancelarEdicionUsuario() {
+  limpiarFormUsuario();
+  mostrarNotif('Edición cancelada');
+}
+
+function limpiarFormUsuario() {
+  document.getElementById('usr-modo').value        = 'nuevo';
+  document.getElementById('usr-index').value       = '';
+  document.getElementById('usr-nombre').value      = '';
+  document.getElementById('usr-ci').value          = '';
+  document.getElementById('usr-email').value       = '';
+  document.getElementById('usr-clave').value       = '';
+  document.getElementById('usr-rol').value         = '';
+  document.getElementById('usr-cats').value        = '';
+  document.getElementById('usr-tel').value         = '';
+  document.getElementById('usr-form-titulo').textContent = '➕ Crear nuevo usuario';
+  document.getElementById('usr-btn-guardar').textContent = '➕ Crear usuario';
+  document.getElementById('usr-btn-cancelar').style.display = 'none';
+}
+
+function toggleUsuario(i) {
+  usuarios[i].estado = usuarios[i].estado === 'ACTIVO' ? 'INACTIVO' : 'ACTIVO';
+  mostrarNotif(usuarios[i].estado === 'ACTIVO' ? '✅ Usuario activado' : '⚠️ Usuario desactivado');
+  renderUsuarios();
+}
+
+function abrirBorrarUsuario(i) {
+  usuarioABorrar = i;
+  const u = usuarios[i];
+  document.getElementById('borrar-usuario-info').innerHTML =
+    '<strong>' + u.nombre + '</strong><br>' +
+    '<span style="color:var(--gris-medio)">Usuario: ' + u.email + '</span><br>' +
+    '<span style="color:var(--gris-medio)">Rol: ' + u.rol + '</span>';
+  document.getElementById('modal-borrar-usuario').classList.add('active');
+}
+
+function confirmarBorrarUsuario() {
+  if (usuarioABorrar === null) return;
+  // No permitir borrar el último admin
+  const admins = usuarios.filter(u => u.rol === 'Administrador' && u.estado === 'ACTIVO');
+  if (admins.length === 1 && usuarios[usuarioABorrar].rol === 'Administrador') {
+    cerrarModal('modal-borrar-usuario');
+    return alert('❌ No podés borrar el único Administrador del sistema');
+  }
+  usuarios.splice(usuarioABorrar, 1);
+  usuarioABorrar = null;
+  cerrarModal('modal-borrar-usuario');
+  mostrarNotif('🗑 Usuario eliminado');
+  renderUsuarios();
+}
+
+function compartirClaveWhatsApp(i) {
+  const u = usuarios[i];
+  const tel = u.tel ? u.tel.replace(/\D/g,'') : '';
+  const numero = tel ? '595' + tel.replace(/^0/,'') : '';
+  const msg = encodeURIComponent(
+    '🏀 *Club Yacaré Básquet*\n' +
+    'Hola ' + u.nombre + ', estos son tus datos de acceso al sistema:\n\n' +
+    '🌐 Abrí el sistema en Chrome\n' +
+    '👤 Usuario: *' + u.email + '*\n' +
+    '🔑 Clave: *' + u.clave + '*\n\n' +
+    '_Garra, Disciplina y Corazón_ 🏀'
+  );
+  if (numero) {
+    window.open('https://wa.me/' + numero + '?text=' + msg, '_blank');
+  } else {
+    navigator.clipboard.writeText(decodeURIComponent(msg));
+    mostrarNotif('✅ Datos copiados — pegá en WhatsApp');
+  }
+}
+
+function renderUsuarios() {
+  const ROLES_COLOR = {
+    'Administrador': 'background:#FADBD8; color:#922B21',
+    'Directivo':     'background:#FADBD8; color:#922B21',
+    'Tesorero':      'background:#D4EDDA; color:#155724',
+    'Entrenador':    'background:#E3F2FD; color:#1565C0',
+  };
+
+  document.getElementById('usuarios-tbody').innerHTML = usuarios.map((u,i) => `
+    <tr style="${u.estado==='INACTIVO'?'opacity:0.5':''}">
+      <td style="font-weight:600">${u.nombre}</td>
+      <td style="font-size:12px; color:var(--gris-medio)">${u.email}</td>
+      <td style="font-size:12px; font-family:monospace; color:var(--gris-oscuro)">${u.clave}</td>
+      <td><span class="tag" style="${ROLES_COLOR[u.rol]||'background:var(--gris-claro)'}">${u.rol}</span></td>
+      <td style="font-size:12px; color:var(--gris-medio)">${u.cats||'—'}</td>
+      <td style="font-size:12px; color:var(--gris-medio)">${u.tel||'—'}</td>
+      <td><span class="badge ${u.estado==='ACTIVO'?'badge-pagado':'badge-pendiente'}">${u.estado}</span></td>
+      <td>
+        <div style="display:flex; gap:4px; flex-wrap:wrap">
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:11px" onclick="editarUsuario(${i})">✏️ Editar</button>
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:11px" onclick="toggleUsuario(${i})">${u.estado==='ACTIVO'?'⏸ Desactivar':'▶ Activar'}</button>
+          <button class="btn btn-secondary" style="padding:4px 8px; font-size:11px" onclick="compartirClaveWhatsApp(${i})">📲 WhatsApp</button>
+          <button class="btn btn-danger" style="padding:4px 8px; font-size:11px" onclick="abrirBorrarUsuario(${i})">🗑</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function crearUsuario() { guardarUsuario(); }
+
+// ══════════════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════════════
+
+async function sincronizarTodo() {
+  mostrarNotif('🔄 Sincronizando con Google Sheets...');
+  await cargarAtletasDesdeSheets();
+  await cargarOperacionesDesdeSheets();
+  mostrarNotif('✅ Sincronización completa');
+}
+
+function limpiarFormulario() {
+  tipoActual = '';
+  atletaSeleccionado = null;
+  document.getElementById('btn-ingreso').className = 'tipo-btn';
+  document.getElementById('btn-egreso').className = 'tipo-btn';
+  document.getElementById('op-concepto').innerHTML = '<option value="">— Seleccionar —</option>';
+  document.getElementById('op-ci').value = '';
+  document.getElementById('op-nombre').value = '';
+  document.getElementById('op-detalle').value = '';
+  document.getElementById('op-monto').value = '';
+  document.getElementById('op-monto2').value = '';
+  document.getElementById('op-mes').value = '';
+  document.getElementById('atleta-search').value = '';
+  document.getElementById('atleta-selected').style.display = 'none';
+  document.getElementById('bloque-atleta').style.display = 'none';
+  document.getElementById('monto-validation').style.display = 'none';
+  document.getElementById('monto-match').style.display = 'none';
+  document.getElementById('monto-error').style.display = 'none';
+  document.getElementById('duplicado-alert').style.display = 'none';
+  document.getElementById('op-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('op-nrodoc').value = '';
+}
+
+function cerrarModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active'); });
+});
+
+// Inicializar fecha hoy en pantalla login
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('fecha-hoy').textContent = fechaHoy();
+});
+
+// ══════════════════════════════════════════════════════
+//  MÓDULO CUOTERO
+// ══════════════════════════════════════════════════════
+
+let cuoteroData    = [];
+let cuoteroFiltro  = 'todos';
+let cuoteroPagoActual = null;
+
+function cargarCuotero() {
+  const mes  = document.getElementById('cuotero-mes').value;
+  const anio = document.getElementById('cuotero-anio').value;
+  if (!mes || !anio) return;
+
+  const periodo = mes + '/' + anio;
+  const tbody   = document.getElementById('cuotero-tbody');
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:1.5rem; color:var(--gris-medio)">🔄 Cargando...</td></tr>';
+
+  // Filtrar operaciones locales por período
+  const opsPeriodo = operaciones.filter(o =>
+    o.tipo === 'INGRESO' &&
+    o.periodo === periodo &&
+    o.atletaId
+  );
+
+  // Construir cuotero desde atletas + pagos
+  cuoteroData = ATLETAS.map(atleta => {
+    const pagos       = opsPeriodo.filter(o => o.atletaId === atleta.id);
+    const totalPagado = pagos.reduce((s, o) => s + o.monto, 0);
+    const totalCuota  = 160000;
+    const saldo       = Math.max(0, totalCuota - totalPagado);
+    const ultimoPago  = pagos.length ? pagos[pagos.length - 1].fecha : '';
+    const nroRecibos  = pagos.length;
+    let estado = 'PENDIENTE';
+    if (totalPagado >= totalCuota) estado = 'PAGADO';
+    else if (totalPagado > 0)      estado = 'PARCIAL';
+
+    return { atleta, totalCuota, totalPagado, saldo, ultimoPago, nroRecibos, estado, pagos };
+  });
+
+  actualizarKPIsCuotero();
+  renderCuotero();
+}
+
+function actualizarKPIsCuotero() {
+  const pagados   = cuoteroData.filter(r => r.estado === 'PAGADO');
+  const parciales = cuoteroData.filter(r => r.estado === 'PARCIAL');
+  const pendientes= cuoteroData.filter(r => r.estado === 'PENDIENTE');
+  const proyectado= cuoteroData.reduce((s, r) => s + r.totalCuota, 0);
+  const cobrado   = cuoteroData.reduce((s, r) => s + r.totalPagado, 0);
+  const pct       = proyectado > 0 ? Math.round(cobrado * 100 / proyectado) : 0;
+
+  document.getElementById('cq-total').textContent      = cuoteroData.length;
+  document.getElementById('cq-pagados').textContent    = pagados.length;
+  document.getElementById('cq-parciales').textContent  = parciales.length;
+  document.getElementById('cq-pendientes').textContent = pendientes.length;
+  document.getElementById('cq-proyectado').textContent = gs(proyectado);
+  document.getElementById('cq-cobrado').textContent    = gs(cobrado);
+  document.getElementById('cq-pct').textContent        = pct + '% del proyectado';
+  document.getElementById('cq-pagados-gs').textContent = gs(pagados.reduce((s,r)=>s+r.totalPagado,0));
+  document.getElementById('cq-parciales-gs').textContent= gs(parciales.reduce((s,r)=>s+r.totalPagado,0));
+  document.getElementById('cq-pendientes-gs').textContent= gs(pendientes.reduce((s,r)=>s+r.totalCuota,0));
+}
+
+function filtrarCuotero(estado) {
+  cuoteroFiltro = estado;
+  document.querySelectorAll('[id^="tab-"]').forEach(b => b.className = 'btn btn-secondary');
+  const tabId = estado === 'todos' ? 'tab-todos' :
+                estado === 'PENDIENTE' ? 'tab-pendientes' :
+                estado === 'PARCIAL'   ? 'tab-parciales' : 'tab-pagados';
+  document.getElementById(tabId).className = 'btn btn-primary';
+  renderCuotero();
+}
+
+function filtrarCuoteroBusqueda() {
+  renderCuotero();
+}
+
+function renderCuotero() {
+  const busqueda = document.getElementById('filtro-cuotero').value.toLowerCase();
+  let datos = cuoteroData;
+
+  if (cuoteroFiltro !== 'todos') {
+    datos = datos.filter(r => r.estado === cuoteroFiltro);
+  }
+
+  if (busqueda) {
+    datos = datos.filter(r =>
+      r.atleta.nombre.toLowerCase().includes(busqueda) ||
+      r.atleta.ci.includes(busqueda)
+    );
+  }
+
+  const tbody = document.getElementById('cuotero-tbody');
+
+  if (!datos.length) {
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><p>Sin registros para este filtro</p></div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = datos.map(r => {
+    const badgeColor = r.estado === 'PAGADO'   ? 'badge-pagado' :
+                       r.estado === 'PARCIAL'  ? 'badge-parcial' : 'badge-pendiente';
+    const bgRow      = r.estado === 'PENDIENTE' ? 'background:rgba(192,57,43,0.04)' :
+                       r.estado === 'PARCIAL'   ? 'background:rgba(243,156,18,0.06)' : '';
+    const btnPago    = r.estado !== 'PAGADO'
+      ? `<button class="btn btn-secondary" style="padding:4px 10px;font-size:11px" onclick="abrirPagoCuotero('${r.atleta.id}')">💰 Pagar</button>`
+      : '<span style="font-size:12px; color:var(--verde)">✅ Saldado</span>';
+
+    return `<tr style="${bgRow}">
+      <td style="font-weight:500">${r.atleta.nombre.split(' ').slice(0,2).join(' ')}</td>
+      <td><span class="tag" style="background:var(--naranja-light);color:var(--naranja-dark)">${r.atleta.cat}</span></td>
+      <td style="font-weight:600">${gs(r.totalCuota)}</td>
+      <td style="color:var(--verde);font-weight:600">${gs(r.totalPagado)}</td>
+      <td style="color:${r.saldo>0?'var(--rojo)':'var(--verde)'};font-weight:600">${gs(r.saldo)}</td>
+      <td style="font-size:12px;color:var(--gris-medio)">${r.ultimoPago || '—'}</td>
+      <td style="text-align:center">${r.nroRecibos}</td>
+      <td><span class="badge ${badgeColor}">${r.estado}</span></td>
+      <td>${btnPago}</td>
+    </tr>`;
+  }).join('');
+}
+
+function abrirPagoCuotero(atletaId) {
+  const row = cuoteroData.find(r => r.atleta.id === atletaId);
+  if (!row) return;
+
+  cuoteroPagoActual = row;
+
+  const info = document.getElementById('pago-cuotero-info');
+  info.innerHTML = `
+    <div style="font-weight:600; font-size:14px; margin-bottom:8px">${row.atleta.nombre}</div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:4px">
+      <span style="color:var(--gris-medio)">Período:</span>
+      <span style="font-weight:600">${document.getElementById('cuotero-mes').value}/${document.getElementById('cuotero-anio').value}</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:4px">
+      <span style="color:var(--gris-medio)">Total cuota:</span>
+      <span style="font-weight:600">${gs(row.totalCuota)}</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:4px">
+      <span style="color:var(--gris-medio)">Ya pagado:</span>
+      <span style="font-weight:600; color:var(--verde)">${gs(row.totalPagado)}</span>
+    </div>
+    <div style="display:flex; justify-content:space-between; border-top:1px solid #DDD; padding-top:6px; margin-top:4px">
+      <span style="color:var(--gris-medio)">Saldo pendiente:</span>
+      <span style="font-weight:700; color:var(--rojo); font-size:16px">${gs(row.saldo)}</span>
+    </div>`;
+
+  document.getElementById('pago-cuotero-monto').value = row.saldo || '';
+  document.getElementById('pago-cuotero-monto2').value = '';
+  document.getElementById('pago-cuotero-confirm-group').style.display = 'none';
+  document.getElementById('pago-match').style.display = 'none';
+  document.getElementById('pago-error').style.display = 'none';
+  document.getElementById('modal-pago-cuotero').classList.add('active');
+}
+
+function validarPagoCuotero() {
+  const m1 = parseFloat(document.getElementById('pago-cuotero-monto').value) || 0;
+  const m2 = parseFloat(document.getElementById('pago-cuotero-monto2').value) || 0;
+  const grp = document.getElementById('pago-cuotero-confirm-group');
+
+  if (m1 > 0) grp.style.display = 'block';
+
+  const match = document.getElementById('pago-match');
+  const err   = document.getElementById('pago-error');
+  if (!m1 || !m2) { match.style.display='none'; err.style.display='none'; return; }
+  if (m1 === m2)  { match.style.display='block'; err.style.display='none'; }
+  else            { match.style.display='none'; err.style.display='block'; }
+}
+
+function confirmarPagoCuotero() {
+  const m1 = parseFloat(document.getElementById('pago-cuotero-monto').value) || 0;
+  const m2 = parseFloat(document.getElementById('pago-cuotero-monto2').value) || 0;
+
+  if (!m1)      return alert('Ingresá el importe a pagar');
+  if (m1 !== m2) return alert('Los importes no coinciden');
+  if (!cuoteroPagoActual) return;
+
+  const row    = cuoteroPagoActual;
+  const mes    = document.getElementById('cuotero-mes').value;
+  const anio   = document.getElementById('cuotero-anio').value;
+  const periodo= mes + '/' + anio;
+
+  cerrarModal('modal-pago-cuotero');
+
+  // Redirigir al formulario de operaciones con datos precargados
+  setTipo('INGRESO');
+  document.getElementById('op-concepto').innerHTML = '<option value="Mensualidad" selected>Mensualidad</option>';
+  seleccionarAtleta(row.atleta.id);
+  document.getElementById('op-mes').value   = mes;
+  document.getElementById('op-anio').value  = anio;
+  document.getElementById('op-monto').value = m1;
+  document.getElementById('monto-validation').style.display = 'block';
+
+  // Navegar a operaciones
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('page-operaciones').classList.add('active');
+
+  mostrarNotif('✅ Atleta y período precargados — completá el monto y confirmá');
+}
+
+function exportarMorosos() {
+  const morosos = cuoteroData.filter(r => r.estado !== 'PAGADO');
+  if (!morosos.length) { alert('✅ No hay morosos en este período'); return; }
+
+  const mes  = document.getElementById('cuotero-mes').value;
+  const anio = document.getElementById('cuotero-anio').value;
+
+  let txt = 'CLUB YACARÉ BÁSQUET — Lista de morosos\n';
+  txt += 'Período: ' + mes + '/' + anio + '\n';
+  txt += '─────────────────────────────────\n\n';
+
+  morosos.forEach((r, i) => {
+    txt += (i+1) + '. ' + r.atleta.nombre + '\n';
+    txt += '   Estado: ' + r.estado + '\n';
+    txt += '   Saldo pendiente: ' + gs(r.saldo) + '\n';
+    txt += '   Contacto tutor: ' + r.atleta.contacto + '\n\n';
+  });
+
+  txt += '─────────────────────────────────\n';
+  txt += 'Total morosos: ' + morosos.length + '\n';
+  txt += 'Total adeudado: ' + gs(morosos.reduce((s,r)=>s+r.saldo,0));
+
+  navigator.clipboard.writeText(txt).then(() =>
+    mostrarNotif('✅ Lista de morosos copiada — pegala en WhatsApp o Word')
+  );
+}
+</script>
+</body>
+</html>

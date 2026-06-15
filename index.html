@@ -3425,12 +3425,14 @@ function buscarAtletaDF() {
     a.nombre.toLowerCase().includes(q) || a.ci.includes(q)
   ).slice(0,6);
   if (!found.length) { res.style.display='none'; return; }
-  res.innerHTML = found.map(a =>
-    '<div class="search-result-item" onclick="seleccionarAtletaDF('' + a.id + '')">' +
-    '<div class="atleta-name">' + a.nombre + '</div>' +
-    '<div class="atleta-meta">CI: ' + a.ci + ' · Cat. ' + a.cat + '</div>' +
-    '</div>'
-  ).join('');
+  let html = '';
+  found.forEach(function(a) {
+    html += '<div class="search-result-item" onclick="seleccionarAtletaDF(' + JSON.stringify(a.id) + ')">';
+    html += '<div class="atleta-name">' + a.nombre + '</div>';
+    html += '<div class="atleta-meta">CI: ' + a.ci + ' - Cat. ' + a.cat + '</div>';
+    html += '</div>';
+  });
+  res.innerHTML = html;
   res.style.display = 'block';
 }
 
@@ -3538,12 +3540,14 @@ function buscarAtletaEV() {
     a.nombre.toLowerCase().includes(q) || a.ci.includes(q)
   ).slice(0,6);
   if (!found.length) { res.style.display='none'; return; }
-  res.innerHTML = found.map(a =>
-    '<div class="search-result-item" onclick="seleccionarAtletaEV('' + a.id + '')">' +
-    '<div class="atleta-name">' + a.nombre + '</div>' +
-    '<div class="atleta-meta">CI: ' + a.ci + ' · Cat. ' + a.cat + '</div>' +
-    '</div>'
-  ).join('');
+  let html = '';
+  found.forEach(function(a) {
+    html += '<div class="search-result-item" onclick="seleccionarAtletaEV(' + JSON.stringify(a.id) + ')">';
+    html += '<div class="atleta-name">' + a.nombre + '</div>';
+    html += '<div class="atleta-meta">CI: ' + a.ci + ' - Cat. ' + a.cat + '</div>';
+    html += '</div>';
+  });
+  res.innerHTML = html;
   res.style.display = 'block';
 }
 

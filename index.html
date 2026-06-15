@@ -3259,16 +3259,8 @@ function aplicarRol(usuario) {
 // ══════════════════════════════════════════════════════
 async function guardarEnSheets(hoja, datos) {
   try {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      mode: 'cors',
-      headers: { 'Content-Type': 'text/plain' },
-      redirect: 'follow',
-      body: JSON.stringify({ accion: 'escribir', hoja, datos })
-    });
-    const text = await res.text();
-    const json = JSON.parse(text);
-    return json.ok;
+    await apiCall('escribir', { hoja, datos });
+    return true;
   } catch(e) {
     console.error('Error guardando en Sheets:', e);
     return false;
